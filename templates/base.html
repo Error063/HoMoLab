@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="{{ url_for('static',filename='./js/mdui.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/mdui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/style.css') }}">
+    <meta charset="UTF-8">
+{#    {% if (not isErrorPage) or (not debug) %}#}
+        <title>米游社</title>
+{#    {% elif isErrorPage %}#}
+{#        <title>错误</title>#}
+{#    {% elif debug %}#}
+{#        <title>Debug</title>#}
+{#    {% endif %}#}
+{#    {% if not isErrorPage %}#}
+{#        <script>document.cookie="token={{ token }}";</script>#}
+{#    {% endif %}#}
+    <script>
+        function setLoadStatus(){
+            let newTitle = document.getElementsByClassName("appTitle")[0].innerHTML + "（加载中）";
+            document.getElementsByClassName("appTitle")[0].innerHTML = newTitle;
+        }
+        function whenScroll() {
+            let titleLine_node = document.getElementsByClassName('titleLine')[0];
+            let sTop = document.documentElement.scrollTop || document.body.scrollTop;
+            let pixel = sTop;
+            titleLine_node.setAttribute("style", "top: " + pixel + "px");
+        }
+        function copy(id) {
+            let text = document.getElementById(id).value;
+            navigator.clipboard.writeText(text).then(function () {
+                /* clipboard successfully set */
+                mdui.snackbar({
+                    message: '复制成功'
+                });
+            }, function () {
+                /* clipboard successfully set */
+                mdui.snackbar({
+                    message: '复制失败'
+                });
+            }, 2000)
+        }
+        window.onscroll = whenScroll;
+    </script>
+</head>
+<body class="mdui-theme-primary-amber mdui-theme-accent-yellow">
+{#{% if frame %}#}
+{#<div class='pywebview-drag-region titleLine'>#}
+{#    <div class="back normal" onclick="window.history.back()">#}
+{#        <i class="mdui-icon material-icons" style="color: #fff;transform: scale(0.7)">&#xe5c4;</i>#}
+{#    </div>#}
+{#    {% if (not isErrorPage) or (not debug) %}#}
+{#        <div class="appTitle" style="color: #fff">米游社</div>#}
+{#    {% elif isErrorPage %}#}
+{#        <div class="appTitle">错误</div>#}
+{#    {% elif debug %}#}
+{#        <div class="appTitle">Debug</div>#}
+{#    {% endif %}#}
+{#    <div class="windowControl">#}
+{#        <div class="close" onclick="pywebview.api.closeApp()">#}
+{#            <i class="mdui-icon material-icons" style="color: #fff;transform: scale(0.7)">&#xe5cd;</i>#}
+{#        </div>#}
+{#        <div class="minimize normal" onclick="">#}
+{#            <i class="mdui-icon material-icons" style="color: #fff;transform: scale(0.7)">&#xe15b;</i>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endif %}#}
+<div class="main">
+{% block body %}
+{% endblock %}
+</div>
+</body>
+</html>

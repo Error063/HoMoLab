@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="article">
+        <div class="mdui-card-header">
+            <img class="mdui-card-header-avatar" src="{{ thread.getAuthorAvatar() }}"/>
+            <div class="mdui-card-header-title">{{ thread.getAuthor() }}</div>
+            <div class="mdui-card-header-subtitle">{{ thread.getAuthorDescribe() }}</div>
+        </div>
+        <h1 class="fix">{{ thread.getTitle() }}</h1>
+        {{ thread.getContent() | safe }}
+    </div>
+{% endblock %}
