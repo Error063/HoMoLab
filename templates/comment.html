@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <script src="{{ url_for('static',filename='./js/mdui.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/mdui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/style.css') }}">
+    <meta charset="UTF-8">
+</head>
+<body>
+{% for reply in thread.getComments() %}
+    <div class="mdui-card reply">
+        <div class="mdui-card-header">
+            <img class="mdui-card-header-avatar" src="{{ reply['avatar'] }}"/>
+            <div class="mdui-card-header-title">{{ reply['username'] }}</div>
+            <div class="mdui-card-header-subtitle">{{ reply['describe'] }}</div>
+        </div>
+        <div class="mdui-card-content mdui-clearfix comment">{{ reply['content'] | safe }}</div>
+    </div>
+{% endfor %}
+
+</body>

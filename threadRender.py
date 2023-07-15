@@ -14,7 +14,7 @@ def render(contents: list):
             pass
         if type(insert) is dict:
             if 'image' in insert.keys():
-                tmp = f'<img src="{insert["image"]}" height={content["attributes"]["height"]} width={content["attributes"]["width"]}>'
+                tmp = f'<div class="imageBox" style="background: no-repeat 100% 100%; background-size: cover; background-image: {insert["image"]}">'
                 output_html += tmp
 
             elif "link_card" in insert.keys():

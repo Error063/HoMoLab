@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <script src="{{ url_for('static',filename='./js/mdui.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='./js/quill.core.js') }}"></script>
+    <script src="{{ url_for('static',filename='./js/quill.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static',filename='./css/mdui.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='./css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/quill.core.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/quill.bubble.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='./css/quill.snow.css') }}">
+
     <meta charset="UTF-8">
 {#    {% if (not isErrorPage) or (not debug) %}#}
         <title>米游社</title>

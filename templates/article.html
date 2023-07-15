@@ -7,6 +7,16 @@
             <div class="mdui-card-header-subtitle">{{ thread.getAuthorDescribe() }}</div>
         </div>
         <h1 class="fix">{{ thread.getTitle() }}</h1>
-        {{ thread.getContent() | safe }}
+        <div class="content">{{ thread.getContent() | safe }}</div>
+        <br>
+        <div class="tags">
+        {% for tag in thread.getTags() %}
+            <div class="mdui-chip" style="float: left;margin-top: 10px;margin-left: 10px">
+                <img class="mdui-chip-icon" src="{{ tag['cover'] }}"/>
+                <span class="mdui-chip-title">{{ tag['name'] }}</span>
+            </div>
+        {% endfor %}
+        </div>
+    <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>
     </div>
 {% endblock %}

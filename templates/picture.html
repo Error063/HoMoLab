@@ -11,5 +11,14 @@
         {% for images in thread.getImages() %}
             <img src="{{ images }}">
         {% endfor %}
+        <div class="tags">
+        {% for tag in thread.getTags() %}
+            <div class="mdui-chip" style="float: left;margin-top: 10px;margin-left: 10px">
+                <img class="mdui-chip-icon" src="{{ tag['cover'] }}"/>
+                <span class="mdui-chip-title">{{ tag['name'] }}</span>
+            </div>
+        {% endfor %}
+        </div>
     </div>
+    <iframe src="/comments" frameborder="0"></iframe>
 {% endblock %}

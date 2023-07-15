@@ -1,27 +1,23 @@
 {% extends 'base.html' %}
 {% block body %}
-    <ul>
     {% for article in articles %}
-        <li>
-            <div class="mdui-card">
+            <div class="mdui-card threadCard">
                 <div class="mdui-card-header">
                     <img class="mdui-card-header-avatar" src="{{ article['authorAvatar'] }}"/>
                     <div class="mdui-card-header-title">{{ article['authorName'] }}</div>
-                        <div class="mdui-card-header-subtitle">{{ article['authorDescribe'] }}</div>
+                    <div class="mdui-card-header-subtitle">{{ article['authorDescribe'] }}</div>
                 </div>
-            <div class="mdui-card-media">
-                <img src="{{ article['cover'] }}"/>
-            </div>
-            <div class="mdui-card-primary">
-                <div class="mdui-card-primary-title">{{ article['title'] }}</div>
-                <div class="mdui-card-primary-subtitle">{{ article['game'] }}</div>
-            </div>
-            <div class="mdui-card-content">{{ article['describe'] }}</div>
-                <div class="mdui-card-actions mdui-float-right">
+                <div class="mdui-card-media">
+                    <img src="{{ article['cover'] }}"/>
+                </div>
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">{{ article['title'] }}</div>
+                    <div class="mdui-card-primary-subtitle">{{ article['game'] }}</div>
+                </div>
+                <div class="mdui-card-content">{{ article['describe'] }}</div>
+                    <div class="mdui-card-actions mdui-float-right">
                     <a href="/article?id={{ article['post_id'] }}" class="mdui-text-color-black"><button class="mdui-btn mdui-ripple">阅读</button></a>
                 </div>
             </div>
-        </li>
     {% endfor %}
-    </ul>
 {% endblock %}
