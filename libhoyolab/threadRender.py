@@ -1,10 +1,13 @@
+import libhoyolab.emotions as emotions
+import re
 
-def render(contents: list):
+
+def render(contents: list, emodict: dict):
     output_html = '<meta charset="UTF-8">'
     para = ''
     for i in range(len(contents)):
         content = contents[i]
-        insert = content["insert"]
+        insert: str | dict = content["insert"]
         align = 'unset'
         try:
             if (contents[i + 1]['insert'] == "\n") and ('attributes' in contents[i + 1].keys()):
@@ -49,5 +52,18 @@ def render(contents: list):
                             para += tmp.format(insert, style)
                     else:
                         para += f'<p style="text-align:{align}">{text}</p>'
+
+                    result = re.findall(r'_\((.*?)\)', para)
+                    for emo in result:
+                        para = para.replace(f"_({emo})",
+                                            f'<img class="emoticon-image emotionIcon" src="{emodict[emo]}">')
     output_html += f'<p>{para}</p>'
     return output_html
+
+
+def replaceEmotions(contents: str, emodict: dict):
+    result = re.findall(r'_\((.*?)\)', contents)
+    for emo in result:
+        contents = contents.replace(f"_({emo})",
+                                    f'<img class="emoticon-image emotionIcon" src="{emodict[emo]}">')
+    return contents

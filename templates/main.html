@@ -1,23 +1,26 @@
 {% extends 'base.html' %}
 {% block body %}
-    {% for article in articles %}
-            <div class="mdui-card threadCard">
-                <div class="mdui-card-header">
-                    <img class="mdui-card-header-avatar" src="{{ article['authorAvatar'] }}"/>
-                    <div class="mdui-card-header-title">{{ article['authorName'] }}</div>
-                    <div class="mdui-card-header-subtitle">{{ article['authorDescribe'] }}</div>
+    <div class="menu"></div>
+    <div class="postCards">
+    {% for i in range(articles | length) %}
+        <a href="/article?id={{ articles[i]['post_id'] }}" style="cursor: pointer;text-decoration: none">
+            <div class="postCard fix">
+                <div class="user">
+                    <img class="avatar" src="{{ articles[i]['authorAvatar'] }}"/>
+                    <div class="userinfo">
+                        <div class="nickname">{{ articles[i]['authorName'] }}</div>
+                        <div class="describe">{{ articles[i]['authorDescribe'] }}</div>
+                    </div>
                 </div>
-                <div class="mdui-card-media">
-                    <img src="{{ article['cover'] }}"/>
+                <div class="image">
+                    <div class="articleCover" style="background-image: url({{ articles[i]['cover'] }})"></div>
                 </div>
-                <div class="mdui-card-primary">
-                    <div class="mdui-card-primary-title">{{ article['title'] }}</div>
-                    <div class="mdui-card-primary-subtitle">{{ article['game'] }}</div>
-                </div>
-                <div class="mdui-card-content">{{ article['describe'] }}</div>
-                    <div class="mdui-card-actions mdui-float-right">
-                    <a href="/article?id={{ article['post_id'] }}" class="mdui-text-color-black"><button class="mdui-btn mdui-ripple">阅读</button></a>
+                <div class="info">
+                    <div class="articleTitle">{{ articles[i]['title'] }}</div>
+                    <div class="articleDescribe">{{ articles[i]['describe'] }}</div>
                 </div>
             </div>
+        </a>
     {% endfor %}
+    </div>
 {% endblock %}

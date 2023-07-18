@@ -38,7 +38,7 @@ def login():
                                          confirm_close=True, height=1300, width=1000)
     main = webview.create_window(js_api=api, on_top=True, x=10, y=10, title='!!!完成登录操作前请勿关闭该窗口!!!',
                                  html=open(
-                                     "templates/login.html", encoding='utf8').read(), minimized=False,
+                                     "../templates/login.html", encoding='utf8').read(), minimized=False,
                                  confirm_close=True)
     webview.start(debug=True, private_mode=False)
     return cookies_str, cookies_dic

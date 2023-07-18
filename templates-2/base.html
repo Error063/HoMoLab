@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+    <script src="{{ url_for('static',filename='js/mdui.min.js') }}"></script>
     <script src="{{ url_for('static',filename='js/quill.core.js') }}"></script>
     <script src="{{ url_for('static',filename='js/quill.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/mdui.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/quill.core.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/quill.bubble.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/quill.snow.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
     <meta charset="UTF-8">
-    <script>
-        {% block scripts %}
-        {% endblock %}
-    </script>
     <title>米游社</title>
 </head>
 <body>

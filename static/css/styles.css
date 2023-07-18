@@ -1,0 +1,195 @@
+/* clearfix */
+.fix::after{
+    content: "";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+/* body */
+body{
+    margin: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+
+/* main.html */
+/* menu */
+.menu{
+    position: relative;
+    left: 0;
+    width: 20%;
+    max-width: 350px;
+    height: 1000px;
+    background-color: black;
+    float: left;
+}
+/* postCards */
+.postCards{
+    /*float: right;*/
+    /*max-width: 55%;*/
+    /*margin: 0 auto;*/
+    padding-right: 15%;
+    /*position: absolute;*/
+    /*top: 10px;*/
+    /*right: 10px;*/
+}
+
+/* postCard */
+.postCard{
+    width: 35%;
+    max-width: 500px;
+    height: 450px;
+    cursor: pointer;
+    text-decoration: none;
+    float: right;
+    margin: 10px;
+    color: black;
+    background-color: #868585;
+    border-radius: 10px;
+}
+/* user */
+.user{
+    margin: 0 auto;
+    padding: 5%;
+    width: 100%;
+    height: 70px;
+}
+.user .avatar{
+    float: left;
+    border: none;
+    border-radius: 50%;
+    max-height: 40px;
+    max-width: 40px;
+    background-color: white;
+}
+.user .userinfo{
+    position: relative;
+    left: 5px;
+}
+.user .userinfo .nickname{
+    position: relative;
+}
+.user .userinfo .describe{
+    position: relative;
+    top: 1px;
+    font-size: 8px;
+}
+/* image */
+.postCard .image .articleCover{
+    width: 95%;
+    height: 220px;
+    margin: 10px auto;
+    background: no-repeat 100% 0;
+    background-size: cover;
+    border-radius: 10px;
+}
+/* info */
+.postCard .info{
+    margin: 10px;
+}
+.postCard .info .articleTitle{
+    margin: 15px;
+    font-size: 18px;
+}
+.postCard .info .articleDescribe{
+    margin: 15px;
+    font-size: 14px;
+}
+
+
+/* article */
+.article{
+    margin: 6% auto;
+    width: 80%;
+    height: auto;
+    border-radius: 10px;
+    background-color: #9d9c9c;
+    padding: 20px;
+    overflow: hidden;
+}
+.article .content img:not(.emotionIcon){
+    margin: 0 auto;
+    max-width: 80%;
+    border-radius: 10px;
+}
+.thread{
+    float: left;
+    width: 50%;
+    height: inherit;
+    margin-bottom: -10000px;
+    padding-bottom: 10000px;
+}
+.comments{
+    position: relative;
+    top: 40px;
+    right: 25px;
+    width: 40%;
+    float: right;
+    margin-bottom: -10000px;
+    padding-bottom: 10000px;
+}
+iframe{
+    width: 100%;
+    min-height: 800px;
+    border: darkgray 1px solid;
+    border-radius: 10px;
+    background-color: darkgray;
+}
+
+/* tags */
+.tags{
+    margin: 0 auto;
+    width: 100%;
+    height: 100px;
+}
+
+/* tag */
+.tag{
+    border-radius: 40px;
+    height: 40px;
+    min-width: 100px;
+    margin: 10px;
+    padding-right: 10px;
+    float: left;
+    background-color: #bebdbd;
+}
+.tag .tagIcon{
+    float: left;
+    max-width: 40px;
+    max-height: 40px;
+    margin-right: 3px;
+    border-radius: 50%;
+}
+.tag .tagTitle {
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 10px;
+    padding-left: 35px;
+}
+
+
+
+/* reply */
+.reply{
+    width: 80%;
+    margin: 15px auto;
+}
+.reply .comment img:not(.emotionIcon) {
+    object-fit: cover;
+    width: 100%;
+    /*height: 100%;*/
+    display: inline-block;
+    border: none;
+    border-radius: 10px;
+    margin: 0 auto;
+}
+.reply .comment img:after {
+    content:'';
+    display: block;
+    clear: both;
+}
+.emotionIcon{
+    border: none;
+}

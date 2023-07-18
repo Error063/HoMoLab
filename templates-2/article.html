@@ -7,10 +7,17 @@
             <div class="mdui-card-header-subtitle">{{ thread.getAuthorDescribe() }}</div>
         </div>
         <h1 class="fix">{{ thread.getTitle() }}</h1>
-        {{ thread.getStructuredContent(rendered=True) | safe }}
-        {% for images in thread.getImages() %}
-            <img src="{{ images }}">
-        {% endfor %}
+        <div class="content ql-editor">
+        {% if type == 1 %}
+            {{ thread.getContent() | safe }}
+        {% elif type == 2 %}
+            {{ thread.getStructuredContent(rendered=True) | safe }}
+            {% for images in thread.getImages() %}
+                <img class="content" src="{{ images }}">
+            {% endfor %}
+        {% endif %}
+        </div>
+        <br>
         <div class="tags">
         {% for tag in thread.getTags() %}
             <div class="mdui-chip" style="float: left;margin-top: 10px;margin-left: 10px">
@@ -19,6 +26,6 @@
             </div>
         {% endfor %}
         </div>
+    <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>
     </div>
-    <iframe src="/comments" frameborder="0"></iframe>
 {% endblock %}

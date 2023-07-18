@@ -1,18 +1,15 @@
 # encoding:utf-8
 
 import pprint
-
-import accountLogin
-import json
-import requests
-import threadRender
-
-_USERAGENT = 'Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36 miHoYoBBS/2.51.1'
-
 import time
 import random
 from hashlib import md5
 import urllib3
+import json
+import requests
+from libhoyolab import threadRender, accountLogin
+
+_USERAGENT = 'Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36 miHoYoBBS/2.51.1'
 
 urllib3.disable_warnings()
 
@@ -57,16 +54,25 @@ def login():
     headers['Cookie'] += f";stoken={tokens[1]['token'] if tokens[1]['name'] == 'stoken' else tokens[0]['token']}; "
 
 
+def getEmotions(gid='2'):
+    print('emotion lib is running')
+    emodict = dict()
+    req = requests.get(f"https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={gid}", verify=False)
+    contents = json.loads(req.content.decode("utf8"))['data']['list']
+
+    for emoset in contents:
+        for emotion in emoset['list']:
+            emodict[emotion['name']] = emotion['icon']
+
+    return emodict
+
+
 class Article:
     def __init__(self, post_id):
-        print(post_id)
-        for i in range(5):
-            try:
-                req = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={post_id}",
-                                   headers=headers, verify=False)
-                break
-            except:
-                continue
+        print(f'getting article from {post_id}')
+        req = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={post_id}",
+                           headers=headers, verify=False)
+
         self.result = json.loads(req.content.decode("utf8"))
 
     def getRaw(self):
@@ -79,7 +85,7 @@ class Article:
         return str(self.result["data"]['post']['post']['game_id'])
 
     def getContent(self):
-        return self.result["data"]['post']['post']['content']
+        return threadRender.replaceEmotions(self.result["data"]['post']['post']['content'], emodict=getEmotions(gid=self.getGameId()))
 
     def getRenderType(self):
         return self.result["data"]['post']['post']['view_type']
@@ -88,7 +94,7 @@ class Article:
         structured = self.result["data"]["post"]["post"]["structured_content"]
         if len(structured) > 0:
             if rendered:
-                return threadRender.render(json.loads(structured))
+                return threadRender.render(json.loads(structured), emodict=getEmotions(gid=self.getGameId()))
             else:
                 return json.loads(self.result["data"]["post"]["post"]["structured_content"])
         else:
@@ -122,29 +128,30 @@ class Article:
 
 class MainPage:
     def __init__(self, gid, page=1):
-        print('working...')
-        for i in range(5):
-            try:
-                req = requests.get(
-                    f"https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={gid}&page={page}&page_size=50",
-                    headers=headers, verify=False)
-                break
-            except:
-                continue
+        print('getting MainPage')
+        req = requests.get(
+            f"https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={gid}&page={page}&page_size=50",
+            headers=headers, verify=False)
+
         result = json.loads(req.content.decode("utf8"))
         self.articles = list()
         for articleInfo in result['data']['recommended_posts']:
             try:
+                if articleInfo['post']['view_type'] not in [1, 2]:
+                    continue
                 article = dict()
                 article['post_id'] = articleInfo['post']['post_id']
                 article['title'] = articleInfo['post']['subject']
                 article['describe'] = articleInfo['post']['content'][:50] + str(
                     "..." if len(articleInfo['post']['content']) > 50 else '')
                 article['cover'] = articleInfo['post']['images'][0] if articleInfo['post']['cover'] == "" else \
-                articleInfo['post']['cover']
+                    articleInfo['post']['cover']
                 article['authorAvatar'] = articleInfo['user']['avatar_url']
                 article['authorName'] = articleInfo['user']['nickname']
-                describe = f"{articleInfo['user']['certification']['label'] if len(articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce']}"
+                describe = articleInfo['user']['certification']['label'] if len(
+                    articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
+                                                                            :15] + '...' if len(
+                    articleInfo['user']['introduce']) > 15 else ''
                 # describe = f"{articleInfo['user']['introduce']}"
                 article['authorDescribe'] = describe
                 article['type'] = articleInfo['post']['view_type']
@@ -158,16 +165,17 @@ class MainPage:
 
 
 class Comments:
-
     def __init__(self, post_id, gid, start=1, max_size=20, rank_by_hot=True, orderby=1):
+        print(f"getting comments from {post_id}")
         self.rank_by_hot = rank_by_hot
         self.comments = []
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
         self.have_top = False
         gid = str(gid)
+        emodict = getEmotions(gid)
         req = requests.get(
             f"https://bbs-api.miyoushe.com/post/wapi/getPostReplies?gids={gid}&is_hot={str(rank_by_hot).lower()}&post_id={str(post_id)}&size={str(max_size)}&last_id={str(start)}&order_type={str(orderby)}",
-            headers=headers)
+            headers=headers, verify=False)
         result = json.loads(req.content.decode("utf8"))
         comments_raw = result['data']['list']
         for i in range(len(comments_raw)):
@@ -175,7 +183,7 @@ class Comments:
             tmp = {
                 'floor_id': reply['reply']['floor_id'],
                 'post_id': reply['reply']['post_id'],
-                'content': reply['reply']['content'],
+                'content': threadRender.replaceEmotions(reply['reply']['content'], emodict=emodict),
                 'username': reply['user']['nickname'],
                 'avatar': reply['user']['avatar_url'],
                 'describe': f"{reply['user']['certification']['label'] if len(reply['user']['certification']['label']) > 0 else reply['user']['introduce']}"
@@ -184,13 +192,12 @@ class Comments:
                 if reply['reply']:
                     comments[0] = tmp
                 else:
-                    comments[i+1] = tmp
+                    comments[i + 1] = tmp
             else:
                 comments[i] = tmp
             for reply in comments:
                 if reply is not None:
                     self.comments.append(reply)
-
 
     def getComments(self):
         return self.comments
@@ -202,10 +209,10 @@ class Comments:
 if __name__ == '__main__':
     login()
     pprint.pprint(cookie_dict)
-    # print(headers)
-    # a = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id=41200597", headers=headers)
-    a = requests.post(f"https://api-takumi.miyoushe.com/account/auth/api/genAuthKey", data={'game_biz': 'bbs_cn'},
-                      headers=headers)
+    print(headers)
+    a = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id=41291064", headers=headers)
+    # a = requests.post(f"https://api-takumi.miyoushe.com/account/auth/api/genAuthKey", data={'game_biz': 'bbs_cn'},
+    #                   headers=headers)
     j = json.loads(a.content.decode("utf8"))
     # j['data']['post']['post']['structured_content'] = json.loads(j['data']['post']['post']['structured_content'])
     with open(f"tests/result-{str(int(time.time()))}.json", mode="w", encoding="utf8") as f:

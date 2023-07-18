@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block body %}
+    {% for i in range(articles | length) %}
+        <a href="/article?id={{ articles[i]['post_id'] }}" class="mdui-text-color-black" style="cursor: pointer;text-decoration: none">
+            <div class="mdui-card threadCard">
+                <div class="mdui-card-header">
+                    <img class="mdui-card-header-avatar" src="{{ articles[i]['authorAvatar'] }}"/>
+                    <div class="mdui-card-header-title">{{ articles[i]['authorName'] }}</div>
+                    <div class="mdui-card-header-subtitle">{{ articles[i]['authorDescribe'] }}</div>
+                </div>
+                <div class="mdui-card-media">
+                    <div class="articleCover" style="background-image: url({{ articles[i]['cover'] }})"></div>
+                </div>
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">{{ articles[i]['title'] }}</div>
+                    <div class="mdui-card-primary-subtitle">{{ articles[i]['game'] }}</div>
+                </div>
+                <div class="mdui-card-content">{{ articles[i]['describe'] }}</div>
+                    <div class="mdui-card-actions mdui-float-right">
+                    <a href="/article?id={{ articles[i]['post_id'] }}" class="mdui-text-color-black">
+                        <button class="mdui-btn mdui-ripple" style="position: relative; bottom: 0px;">阅读</button>
+                    </a>
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+{% endblock %}

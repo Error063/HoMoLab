@@ -1,22 +1,42 @@
 {% extends 'base.html' %}
 {% block body %}
     <div class="article">
-        <div class="mdui-card-header">
-            <img class="mdui-card-header-avatar" src="{{ thread.getAuthorAvatar() }}"/>
-            <div class="mdui-card-header-title">{{ thread.getAuthor() }}</div>
-            <div class="mdui-card-header-subtitle">{{ thread.getAuthorDescribe() }}</div>
-        </div>
-        <h1 class="fix">{{ thread.getTitle() }}</h1>
-        <div class="content">{{ thread.getContent() | safe }}</div>
-        <br>
-        <div class="tags">
-        {% for tag in thread.getTags() %}
-            <div class="mdui-chip" style="float: left;margin-top: 10px;margin-left: 10px">
-                <img class="mdui-chip-icon" src="{{ tag['cover'] }}"/>
-                <span class="mdui-chip-title">{{ tag['name'] }}</span>
+        <div class="thread">
+            <div class="user fix">
+                <img class="avatar" src="{{ thread.getAuthorAvatar() }}"/>
+                <div class="userinfo">
+                    <div class="nickname">{{ thread.getAuthor() }}</div>
+                    <div class="describe">{{ thread.getAuthorDescribe() }}</div>
+                </div>
             </div>
-        {% endfor %}
+            <div class="content ql-editor fix">
+                <h1 class="fix">{{ thread.getTitle() }}</h1>
+                {% if type == 1 %}
+                    {{ thread.getContent() | safe }}
+                {% elif type == 2 %}
+                    {{ thread.getStructuredContent(rendered=True) | safe }}
+                    {% for images in thread.getImages() %}
+                        <div class="ql-image">
+                            <div class="ql-image-box">
+                                <img class="content" src="{{ images }}">
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <br>
+            <div class="tags">
+                {% for tag in thread.getTags() %}
+                    <div class="tag">
+                        <img class="tagIcon" src="{{ tag['cover'] }}"/>
+                        <div class="tagTitle">{{ tag['name'] }}</div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>
+        <div class="comments">
+            <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>
+        </div>
     </div>
+
 {% endblock %}
