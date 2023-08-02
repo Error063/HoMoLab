@@ -25,6 +25,7 @@
                 {% endif %}
             </div>
             <br>
+        {% if thread.getTags() %}
             <div class="tags">
                 {% for tag in thread.getTags() %}
                     <div class="tag">
@@ -33,6 +34,7 @@
                     </div>
                 {% endfor %}
             </div>
+        {% endif %}
         </div>
         <div class="comments">
             <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>

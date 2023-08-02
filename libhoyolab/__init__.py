@@ -1,9 +1,9 @@
 # encoding:utf-8
-
+import hashlib
 import pprint
+import string
 import time
 import random
-from hashlib import md5
 import urllib3
 import json
 import requests
@@ -13,65 +13,65 @@ _USERAGENT = 'Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv
 
 urllib3.disable_warnings()
 
-lettersAndNumbers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-
-# 将要使用的salt，此为2.35.2版本的K2 salt。
-salt = "ZSHlXeQUBis52qD1kEgKt5lUYed4b7Bb"
-
-t = int(time.time())
-r = "".join(random.choices(lettersAndNumbers, k=6))
-main = f"salt={salt}&t={t}&r={r}"
-ds = md5(main.encode(encoding='UTF-8')).hexdigest()
-
-final = f"{t},{r},{ds}"  # 最终结果。
-
 headers = {
     "User-Agent": _USERAGENT,
-    "x-rpc-client_type": "5",
     "x-rpc-sys_version": "13",
     "x-rpc-channel": "xiaomi",
     "x-rpc-device_name": "Xiaomi M2101K9C",
     "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-app_id": "bll8iq97cem8",
-    "Referer": "https://webstatic.mihoyo.com",
+    "Referer": "https://app.mihoyo.com",
+    "X-Rpc-App_version": "2.55.1",
+    "Ds": "",
+    "Dnt": "1",
+    "X-Rpc-Client_type": "4",
     "Cookie": ''
 }
 cookie_dict = dict()
+
+session = requests.session()
+
+
+def get_ds():
+    def md5(text: str) -> str:
+        _md5 = hashlib.md5()
+        _md5.update(text.encode())
+        return _md5.hexdigest()
+
+    n = "F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa"
+    i = str(int(time.time()))
+    r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
+    c = md5("salt=" + n + "&t=" + i + "&r=" + r)
+    headers["Ds"] = f"{i},{r},{c}"
 
 
 def login():
     global cookie_dict, headers
     cookie = accountLogin.login()
-    while "login_ticket" not in cookie[0].lower():
+    while "cookie_token_v2" not in cookie[0].lower():
         cookie = accountLogin.login()
     headers['Cookie'] = cookie[0]
-    cookie_dict = cookie[1]
-    tokens_raw = requests.get(
-        f"https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={cookie_dict['login_ticket']}&token_types=3&uid={cookie_dict['login_uid']}",
-        headers=headers).content.decode("utf8")
-    tokens = json.loads(tokens_raw)['data']['list']
-    headers['Cookie'] += f";ltoken_v2={tokens[1]['token'] if tokens[1]['name'] == 'ltoken' else tokens[0]['token']}; "
-    headers['Cookie'] += f";stoken={tokens[1]['token'] if tokens[1]['name'] == 'stoken' else tokens[0]['token']}; "
+    get_ds()
 
 
 def getEmotions(gid='2'):
     print('emotion lib is running')
-    emodict = dict()
-    req = requests.get(f"https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={gid}", verify=False)
+    emotionDict = dict()
+    req = session.get(f"https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={gid}", verify=False)
     contents = json.loads(req.content.decode("utf8"))['data']['list']
 
-    for emoset in contents:
-        for emotion in emoset['list']:
-            emodict[emotion['name']] = emotion['icon']
+    for emotionSet in contents:
+        for emotion in emotionSet['list']:
+            emotionDict[emotion['name']] = emotion['icon']
 
-    return emodict
+    return emotionDict
 
 
 class Article:
     def __init__(self, post_id):
         print(f'getting article from {post_id}')
-        req = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={post_id}",
-                           headers=headers, verify=False)
+        req = session.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={post_id}",
+                          headers=headers, verify=False)
 
         self.result = json.loads(req.content.decode("utf8"))
 
@@ -85,7 +85,8 @@ class Article:
         return str(self.result["data"]['post']['post']['game_id'])
 
     def getContent(self):
-        return threadRender.replaceEmotions(self.result["data"]['post']['post']['content'], emodict=getEmotions(gid=self.getGameId()))
+        return threadRender.replaceEmotions(self.result["data"]['post']['post']['content'],
+                                            emotionDict=getEmotions(gid=self.getGameId()))
 
     def getRenderType(self):
         return self.result["data"]['post']['post']['view_type']
@@ -94,7 +95,7 @@ class Article:
         structured = self.result["data"]["post"]["post"]["structured_content"]
         if len(structured) > 0:
             if rendered:
-                return threadRender.render(json.loads(structured), emodict=getEmotions(gid=self.getGameId()))
+                return threadRender.render(json.loads(structured), emotionDict=getEmotions(gid=self.getGameId()))
             else:
                 return json.loads(self.result["data"]["post"]["post"]["structured_content"])
         else:
@@ -129,7 +130,7 @@ class Article:
 class MainPage:
     def __init__(self, gid, page=1):
         print('getting MainPage')
-        req = requests.get(
+        req = session.get(
             f"https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={gid}&page={page}&page_size=50",
             headers=headers, verify=False)
 
@@ -172,8 +173,8 @@ class Comments:
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
         self.have_top = False
         gid = str(gid)
-        emodict = getEmotions(gid)
-        req = requests.get(
+        emotionDict = getEmotions(gid)
+        req = session.get(
             f"https://bbs-api.miyoushe.com/post/wapi/getPostReplies?gids={gid}&is_hot={str(rank_by_hot).lower()}&post_id={str(post_id)}&size={str(max_size)}&last_id={str(start)}&order_type={str(orderby)}",
             headers=headers, verify=False)
         result = json.loads(req.content.decode("utf8"))
@@ -183,10 +184,11 @@ class Comments:
             tmp = {
                 'floor_id': reply['reply']['floor_id'],
                 'post_id': reply['reply']['post_id'],
-                'content': threadRender.replaceEmotions(reply['reply']['content'], emodict=emodict),
+                'content': threadRender.replaceEmotions(reply['reply']['content'], emotionDict=emotionDict),
                 'username': reply['user']['nickname'],
                 'avatar': reply['user']['avatar_url'],
-                'describe': f"{reply['user']['certification']['label'] if len(reply['user']['certification']['label']) > 0 else reply['user']['introduce']}"
+                'describe': reply['user']['certification']['label'] if len(
+                    reply['user']['certification']['label']) > 0 else reply['user']['introduce']
             }
             if rank_by_hot:
                 if reply['reply']:
@@ -206,14 +208,10 @@ class Comments:
         return
 
 
-if __name__ == '__main__':
+def debug():
     login()
-    pprint.pprint(cookie_dict)
-    print(headers)
-    a = requests.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id=41291064", headers=headers)
-    # a = requests.post(f"https://api-takumi.miyoushe.com/account/auth/api/genAuthKey", data={'game_biz': 'bbs_cn'},
-    #                   headers=headers)
-    j = json.loads(a.content.decode("utf8"))
-    # j['data']['post']['post']['structured_content'] = json.loads(j['data']['post']['post']['structured_content'])
-    with open(f"tests/result-{str(int(time.time()))}.json", mode="w", encoding="utf8") as f:
-        json.dump(j, fp=f, ensure_ascii=False)
+    pprint.pprint(headers)
+    a = requests.get(f"https://bbs-api.miyoushe.com/user/api/getUserFullInfo", headers=headers)
+    print(a.cookies.get_dict())
+    j = a.json()
+    pprint.pprint(j)

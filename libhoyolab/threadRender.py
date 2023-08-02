@@ -1,8 +1,7 @@
-import libhoyolab.emotions as emotions
 import re
 
 
-def render(contents: list, emodict: dict):
+def render(contents: list, emotionDict: dict):
     output_html = '<meta charset="UTF-8">'
     para = ''
     for i in range(len(contents)):
@@ -56,14 +55,14 @@ def render(contents: list, emodict: dict):
                     result = re.findall(r'_\((.*?)\)', para)
                     for emo in result:
                         para = para.replace(f"_({emo})",
-                                            f'<img class="emoticon-image emotionIcon" src="{emodict[emo]}">')
+                                            f'<img class="emoticon-image emotionIcon" src="{emotionDict[emo]}">')
     output_html += f'<p>{para}</p>'
     return output_html
 
 
-def replaceEmotions(contents: str, emodict: dict):
+def replaceEmotions(contents: str, emotionDict: dict):
     result = re.findall(r'_\((.*?)\)', contents)
     for emo in result:
         contents = contents.replace(f"_({emo})",
-                                    f'<img class="emoticon-image emotionIcon" src="{emodict[emo]}">')
+                                    f'<img class="emoticon-image emotionIcon" src="{emotionDict[emo]}">')
     return contents
