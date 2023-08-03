@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
-{% block body %}
-    <div class="menu"></div>
+{% extends 'mainPage.html' %}
+{% block main %}
     <div class="postCards">
+    <div class="banner"></div>
     {% for i in range(articles | length) %}
         <a href="/article?id={{ articles[i]['post_id'] }}" style="cursor: pointer;text-decoration: none">
             <div class="postCard fix">

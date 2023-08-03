@@ -36,9 +36,8 @@
             </div>
         {% endif %}
         </div>
-        <div class="comments">
-            <iframe src="/comments?post_id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}"></iframe>
-        </div>
     </div>
-
+    <div class="comments">
+        <iframe src="/comments?id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}&page=1" allowTransparency></iframe>
+    </div>
 {% endblock %}

@@ -1,0 +1,5 @@
+getPostReplies = "https://bbs-api.miyoushe.com/post/wapi/getPostReplies?gids={0}&is_hot={1}&post_id={2}&size={3}&last_id={4}&order_type={5}"
+webHome = "https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={0}&page={1}&page_size={2}"
+getPostFull = "https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={0}"
+emoticon_set = "https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={0}"
+getNewsList = "https://bbs-api.miyoushe.com/post/wapi/getNewsList?gids={0}&type={1}&page_size={2}&last_id={3}"

@@ -4,10 +4,11 @@ import pprint
 import string
 import time
 import random
+
 import urllib3
 import json
 import requests
-from libhoyolab import threadRender, accountLogin
+from libhoyolab import threadRender, accountLogin, urls
 
 _USERAGENT = 'Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36 miHoYoBBS/2.51.1'
 
@@ -28,6 +29,7 @@ headers = {
     "Cookie": ''
 }
 cookie_dict = dict()
+newsType = {'announce': '1', 'activity': '2', 'information': '3'}
 
 session = requests.session()
 
@@ -57,7 +59,7 @@ def login():
 def getEmotions(gid='2'):
     print('emotion lib is running')
     emotionDict = dict()
-    req = session.get(f"https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={gid}", verify=False)
+    req = session.get(urls.emoticon_set.format(str(gid)), verify=False)
     contents = json.loads(req.content.decode("utf8"))['data']['list']
 
     for emotionSet in contents:
@@ -70,9 +72,8 @@ def getEmotions(gid='2'):
 class Article:
     def __init__(self, post_id):
         print(f'getting article from {post_id}')
-        req = session.get(f"https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={post_id}",
-                          headers=headers, verify=False)
-
+        print('accessing ' + urls.getPostFull.format(str(post_id)))
+        req = session.get(urls.getPostFull.format(str(post_id)), headers=headers, verify=False)
         self.result = json.loads(req.content.decode("utf8"))
 
     def getRaw(self):
@@ -127,16 +128,23 @@ class Article:
         return tags
 
 
-class MainPage:
-    def __init__(self, gid, page=1):
-        print('getting MainPage')
-        req = session.get(
-            f"https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={gid}&page={page}&page_size=50",
-            headers=headers, verify=False)
-
+class Page:
+    def __init__(self, gid, pageType, page=1, pageSize=50):
+        print('getting page')
+        if pageType == 'recommend':
+            apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
+        else:
+            if pageType not in newsType:
+                typeNum = '1'
+            else:
+                typeNum = newsType[pageType]
+            apiUrl = urls.getNewsList.format(str(gid), str(typeNum), str(pageSize),
+                                             str((int(page) - 1) * 50 + 1))
+        print('accessing ' + apiUrl)
+        req = session.get(apiUrl, headers=headers, verify=False)
         result = json.loads(req.content.decode("utf8"))
         self.articles = list()
-        for articleInfo in result['data']['recommended_posts']:
+        for articleInfo in result['data']['recommended_posts' if pageType == 'recommend' else 'list']:
             try:
                 if articleInfo['post']['view_type'] not in [1, 2]:
                     continue
@@ -153,7 +161,6 @@ class MainPage:
                     articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
                                                                             :15] + '...' if len(
                     articleInfo['user']['introduce']) > 15 else ''
-                # describe = f"{articleInfo['user']['introduce']}"
                 article['authorDescribe'] = describe
                 article['type'] = articleInfo['post']['view_type']
 
@@ -166,18 +173,26 @@ class MainPage:
 
 
 class Comments:
-    def __init__(self, post_id, gid, start=1, max_size=20, rank_by_hot=True, orderby=1):
-        print(f"getting comments from {post_id}")
+    def __init__(self, post_id, gid, page=1, max_size=20, rank_by_hot=True, orderby=1):
+        self.page = int(page)
+        self.post_id = post_id
+        self.gid = gid
+        start = (int(page) - 1) * int(max_size) + 1
+        print(f"getting comments from {post_id}, start from {start}")
         self.rank_by_hot = rank_by_hot
         self.comments = []
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
         self.have_top = False
         gid = str(gid)
         emotionDict = getEmotions(gid)
+        print("accessing " + urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
+                                                        str(start), str(orderby)))
         req = session.get(
-            f"https://bbs-api.miyoushe.com/post/wapi/getPostReplies?gids={gid}&is_hot={str(rank_by_hot).lower()}&post_id={str(post_id)}&size={str(max_size)}&last_id={str(start)}&order_type={str(orderby)}",
-            headers=headers, verify=False)
+            urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size), str(start),
+                                       str(orderby)),
+            headers=headers, verify=False, stream=True)
         result = json.loads(req.content.decode("utf8"))
+        self.isLastFlag = result['data']['is_last']
         comments_raw = result['data']['list']
         for i in range(len(comments_raw)):
             reply = comments_raw[i]
