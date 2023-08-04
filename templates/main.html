@@ -1,6 +1,6 @@
 {% extends 'mainPage.html' %}
 {% block main %}
-    <div class="postCards">
+    <div class="rights">
     <div class="banner"></div>
     {% for i in range(articles | length) %}
         <a href="/article?id={{ articles[i]['post_id'] }}" style="cursor: pointer;text-decoration: none">

@@ -3,14 +3,11 @@
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
+    <script src="{{ url_for('static',filename='js/main.js') }}"></script>
     <meta charset="UTF-8">
-    <script>
-        {% block scripts %}
-        {% endblock %}
-    </script>
     <title>米游社</title>
 </head>
-<body style="min-width: 650px;">
+<body style="min-width: 650px;background: black">
     <div class="main">
         {% block body %}
         {% endblock %}

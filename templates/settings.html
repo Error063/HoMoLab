@@ -1,0 +1,46 @@
+{% extends 'mainPage.html' %}
+{% block main %}
+    <div class="setting rights">
+        <p><h1>设置</h1>
+        <hr/>
+        <p><h3>账户</h3>
+        <p>
+            <a onclick="window.alert('前面的区域，以后再来探索吧')">
+                <div class="accountInSetting account">
+                    <div class="user fix">
+                        <img class="avatar" src="https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png"/>
+                        <div class="userinfo">
+                            <div class="nickname">尚不可用</div>
+                            <div class="describe"></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </p>
+        <hr>
+        {% if isSaved %}
+            <p><strong>已保存！</strong></p>
+        {% endif %}
+        <p><strong>以下所有设置均在下次启动时生效</strong></p>
+        <form action="/setting" method="post">
+            <p>
+                <input type="checkbox" name="enableDebug" id="enableDebug" value="on" {{ 'checked' if config['enableDebug'] == 'on' }}>
+                <input type="hidden" name="enableDebug" value="off">
+                <label for="enableDebug">启用调试</label>
+            </p>
+            <p>
+                <label for="openLoad">启动时加载版块：</label>
+                <select name="openLoad" id="openLoad">
+                    <option value="ys" {{ 'selected' if config['openLoad'] == 'ys'  }}>原神</option>
+                    <option value="bh3"  {{ 'selected' if config['openLoad'] == 'bh3'  }}>崩坏3</option>
+                    <option value="bh2"  {{ 'selected' if config['openLoad'] == 'bh2'  }}>崩坏学院2</option>
+                    <option value="dby"  {{ 'selected' if config['openLoad'] == 'dby'  }}>大别野</option>
+                    <option value="sr"  {{ 'selected' if config['openLoad'] == 'sr'  }}>崩坏：星穹铁道</option>
+                    <option value="zzz"  {{ 'selected' if config['openLoad'] == 'zzz'  }}>绝区零</option>
+                    <option value="wd"  {{ 'selected' if config['openLoad'] == 'wd'  }}>未定事件簿</option>
+                </select>
+            </p>
+            <p><input type="submit" value="保存设置"></p>
+        </form>
+    </div>
+{% endblock %}

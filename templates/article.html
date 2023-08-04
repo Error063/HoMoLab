@@ -2,6 +2,10 @@
 {% block body %}
     <div class="article">
         <div class="thread">
+            <a href="/{{ game }}">
+                <button>返回首页</button>
+            </a>
+            {# 作者信息 #}
             <div class="user fix">
                 <img class="avatar" src="{{ thread.getAuthorAvatar() }}"/>
                 <div class="userinfo">
@@ -11,6 +15,7 @@
             </div>
             <div class="content ql-editor fix">
                 <h1 class="fix">{{ thread.getTitle() }}</h1>
+                {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
                 {% if type == 1 %}
                     {{ thread.getContent() | safe }}
                 {% elif type == 2 %}
@@ -25,6 +30,7 @@
                 {% endif %}
             </div>
             <br>
+        {# 文章标签 #}
         {% if thread.getTags() %}
             <div class="tags">
                 {% for tag in thread.getTags() %}
@@ -37,6 +43,7 @@
         {% endif %}
         </div>
     </div>
+    {# 评论区（使用iframe嵌入） #}
     <div class="comments">
         <iframe src="/comments?id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}&page=1" allowTransparency></iframe>
     </div>

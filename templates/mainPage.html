@@ -1,41 +1,41 @@
 {% extends 'base.html' %}
 {% block body %}
-    <div class="menu">
+    <div class="menu side">
         <form action="/search" class="search">
-            <input type="text" name="content" id="content" value="">
+            <input type="text" name="content" id="content" value="{{ search }}">
             <input type="submit" value="搜索">
         </form>
         <div class="areas">
-            <a href="/{{ game }}">
+            <a onclick="hidePostCards('/{{ game }}')">
                 <div class="area {{ 'selected' if select == 'recommend' else '' }}">
                 推荐
                 </div>
             </a>
             <div class="blank"></div>
-            <a href="/{{ game }}/news?type=announce">
+            <a onclick="hidePostCards('/{{ game }}/news?type=announce')">
                 <div class="area {{ 'selected' if select == 'announce' else '' }}">
                     公告
                 </div>
             </a>
-            <a href="/{{ game }}/news?type=activity">
+            <a onclick="hidePostCards('/{{ game }}/news?type=activity')">
                 <div class="area {{ 'selected' if select == 'activity' else '' }}">
                     活动
                 </div>
             </a>
-            <a href="/{{ game }}/news?type=information">
+            <a onclick="hidePostCards('/{{ game }}/news?type=information')">
                 <div class="area {{ 'selected' if select == 'information' else '' }}">
                     资讯
                 </div>
             </a>
         </div>
         <div class="autoFit"></div>
-        <a onclick="window.alert('前面的区域，以后再来探索吧！')">
+        <a href="/setting">
             <div class="account">
                 <div class="user fix">
                     <img class="avatar" src="https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png"/>
                     <div class="userinfo">
-                        <div class="nickname">Demo</div>
-                        <div class="describe">example</div>
+                        <div class="nickname">登录</div>
+                        <div class="describe"></div>
                     </div>
                 </div>
             </div>

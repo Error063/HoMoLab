@@ -73,7 +73,16 @@ class Article:
     def __init__(self, post_id):
         print(f'getting article from {post_id}')
         print('accessing ' + urls.getPostFull.format(str(post_id)))
-        req = session.get(urls.getPostFull.format(str(post_id)), headers=headers, verify=False)
+        count = 3
+        while count != 0:
+            try:
+                req = session.get(urls.getPostFull.format(str(post_id)), headers=headers, verify=False)
+                break
+            except:
+                count -= 1
+                continue
+        if count == 0:
+            raise Exception('Connection Failed!')
         self.result = json.loads(req.content.decode("utf8"))
 
     def getRaw(self):
@@ -141,7 +150,16 @@ class Page:
             apiUrl = urls.getNewsList.format(str(gid), str(typeNum), str(pageSize),
                                              str((int(page) - 1) * 50 + 1))
         print('accessing ' + apiUrl)
-        req = session.get(apiUrl, headers=headers, verify=False)
+        count = 3
+        while count != 0:
+            try:
+                req = session.get(apiUrl, headers=headers, verify=False)
+                break
+            except:
+                count -= 1
+                continue
+        if count == 0:
+            raise Exception('Connection Failed!')
         result = json.loads(req.content.decode("utf8"))
         self.articles = list()
         for articleInfo in result['data']['recommended_posts' if pageType == 'recommend' else 'list']:
@@ -187,10 +205,19 @@ class Comments:
         emotionDict = getEmotions(gid)
         print("accessing " + urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
                                                         str(start), str(orderby)))
-        req = session.get(
-            urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size), str(start),
-                                       str(orderby)),
-            headers=headers, verify=False, stream=True)
+        count = 3
+        while count != 0:
+            try:
+                req = session.get(
+                    urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
+                                               str(start),str(orderby)),
+                    headers=headers, verify=False, stream=True)
+                break
+            except:
+                count -= 1
+                continue
+        if count == 0:
+            raise Exception('Connection Failed!')
         result = json.loads(req.content.decode("utf8"))
         self.isLastFlag = result['data']['is_last']
         comments_raw = result['data']['list']
