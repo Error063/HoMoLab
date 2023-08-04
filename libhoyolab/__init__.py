@@ -4,7 +4,6 @@ import pprint
 import string
 import time
 import random
-
 import urllib3
 import json
 import requests
@@ -76,7 +75,7 @@ class Article:
         count = 3
         while count != 0:
             try:
-                req = session.get(urls.getPostFull.format(str(post_id)), headers=headers, verify=False)
+                req = session.get(urls.getPostFull.format(str(post_id)), headers=headers, verify=False, timeout=3)
                 break
             except:
                 count -= 1
@@ -139,6 +138,7 @@ class Article:
 
 class Page:
     def __init__(self, gid, pageType, page=1, pageSize=50):
+        self.page = page
         print('getting page')
         if pageType == 'recommend':
             apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
@@ -153,7 +153,7 @@ class Page:
         count = 3
         while count != 0:
             try:
-                req = session.get(apiUrl, headers=headers, verify=False)
+                req = session.get(apiUrl, headers=headers, verify=False, timeout=3)
                 break
             except:
                 count -= 1
@@ -211,7 +211,7 @@ class Comments:
                 req = session.get(
                     urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
                                                str(start),str(orderby)),
-                    headers=headers, verify=False, stream=True)
+                    headers=headers, verify=False, stream=True, timeout=3)
                 break
             except:
                 count -= 1
@@ -248,6 +248,52 @@ class Comments:
 
     def getSubComments(self):
         return
+
+
+class Search:
+    def __init__(self, keyWords, gid, page=1, max_size=20):
+        self.gid = gid
+        start = int(page)
+        print(f'searching {keyWords}, from {start}')
+        print(f'accessing {urls.searchPosts.format(str(gid), str(keyWords),str(start), str(max_size))}')
+        count = 3
+        while count != 0:
+            try:
+                req = session.get(
+                    urls.searchPosts.format(str(gid), str(keyWords),str(start), str(max_size)),
+                    headers=headers, verify=False, stream=True, timeout=3)
+                break
+            except:
+                count -= 1
+                continue
+        if count == 0:
+            raise Exception('Connection Failed!')
+        result = json.loads(req.content.decode("utf8"))
+        self.isLastFlag = result['data']['is_last']
+        self.articles = list()
+        for articleInfo in result['data']['posts']:
+            print(articleInfo['post']['subject'])
+            # if articleInfo['post']['view_type'] not in [1, 2]:
+            #     continue
+            article = dict()
+            article['post_id'] = articleInfo['post']['post_id']
+            article['title'] = articleInfo['post']['subject']
+            article['describe'] = articleInfo['post']['content'][:50] + str("..." if len(articleInfo['post']['content']) > 50 else '')
+            try:
+                article['cover'] = articleInfo['post']['cover'] if articleInfo['post']['cover'] != "" else articleInfo['post']['images'][0]
+            except:
+                article['cover'] = ''
+            article['authorAvatar'] = articleInfo['user']['avatar_url']
+            article['authorName'] = articleInfo['user']['nickname']
+            describe = articleInfo['user']['certification']['label'] if len(
+                articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][:15] + '...' if len(articleInfo['user']['introduce']) > 15 else ''
+            article['authorDescribe'] = describe
+            article['type'] = articleInfo['post']['view_type']
+
+            self.articles.append(article)
+
+    def getArticles(self):
+        return self.articles
 
 
 def debug():

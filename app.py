@@ -1,7 +1,8 @@
 # encoding:utf-8
+import os
 import pprint
 from functools import wraps
-from flask import Flask, render_template, request, redirect, make_response, send_file, url_for
+from flask import Flask, render_template, request, redirect, make_response, send_file, url_for, send_from_directory
 from werkzeug.middleware.proxy_fix import ProxyFix
 import json
 import libhoyolab
@@ -18,6 +19,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 
 games = dict(bh3='1', ys='2', bh2='3', wd='4', dby='5', sr='6', zzz='8')
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
+gamesName = {'bh3': '崩坏3', 'ys': '原神', 'bh2': '崩坏学园2', 'wd': '未定事件簿', 'dby': '大别野',
+             'sr': '崩坏：星穹铁道', '': '空', 'zzz': '绝区零'}
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
@@ -37,23 +40,24 @@ def LoadPage(func):
             print('browser that not allowed')
             return "<h1>app鉴权失败！</h1>", 403
         else:
-            # return func(*args, **kwargs)
-            try:
-                resp = make_response(func(*args, **kwargs))
-                resp.set_cookie('token', token)
-                if firstAccess:
-                    firstAccess = False
-                return resp
-            except Exception as e:
-                if str(e) == "'favicon.ico'":
-                    print('requiring favicon')
-                    return url_for('static', filename='pics/exampleUser.jpg')
-                else:
-                    print(f"Error! {e}")
-                    return "<p><h1>尝试处理请求时出现错误！</h1></p><p><button onclick='window.location.reload()'>重试</button></p>"
+            return func(*args, **kwargs)
+            # try:
+            #     resp = make_response(func(*args, **kwargs))
+            #     resp.set_cookie('token', token)
+            #     if firstAccess:
+            #         firstAccess = False
+            #     return resp
+            # except Exception as e:
+            #     print(f"Error! {e}")
+            #     return "<p><h1>尝试处理请求时出现错误！</h1></p><p><button onclick='window.location.reload()'>重试</button></p>"
 
     return wrapper
 
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'icons/appicon.ico', mimetype='image/vnd.microsoft.icon')
 
 # 文章页
 @app.route('/article')
@@ -83,16 +87,21 @@ def comments():
 def main(game):
     global nowPage
     nowPage = game
-    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], pageType='recommend').getArticles(),
-                           select='recommend', game=game)
+    page = int(request.args.get('page') if 'page' in request.args else '1')
+    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
+                           select='recommend', game=game, page=page, isLast=False)
 
 
 # 搜索
-@app.route('/search')
+@app.route('/<game>/search')
 @LoadPage
-def search():
+def search(game):
     content = request.args.get('content')
-    return f'你搜索了{content}'
+    gameid = games[game]
+    page = int(request.args.get('page') if 'page' in request.args else '1')
+    search_result = libhoyolab.Search(keyWords=content, gid=gameid, page=page)
+    return render_template('main.html', articles=search_result.getArticles(), search=content,
+                           select='search', game=game, page=page, isLast=search_result.isLastFlag)
 
 
 # 官方资讯
@@ -102,13 +111,14 @@ def news(game):
     global nowPage
     nowPage = game
     requestType = request.args.get('type') if 'type' in request.args else 'announce'
-    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], pageType=requestType).getArticles(),
+    page = request.args.get('page') if 'page' in request.args else '1'
+    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
                            select=requestType, game=game)
 
 
 @app.route('/setting', methods=['POST', 'GET'])
 def setting():
-    global config
+    global config, nowPage, openLoad
     if request.method == 'GET':
         return render_template('settings.html', game=nowPage, isSaved=False, config=config)
     else:
@@ -117,6 +127,9 @@ def setting():
         for k in settings:
             config[k] = settings[k]
         print(config)
+        openLoad = config['openLoad']
+        nowPage = openLoad
+        window.set_title(f'米游社 - {gamesName[openLoad]}')
         with open('configs/config.json', mode='w') as fp:
             json.dump(config, fp)
         return render_template('settings.html', game=nowPage, isSaved=True, config=config)
@@ -126,6 +139,7 @@ def setting():
 @app.route('/')
 @LoadPage
 def index():
+    window.set_title(f'米游社 - {gamesName[openLoad]}')
     return redirect(f'/{openLoad}')
 
 

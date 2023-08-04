@@ -3,3 +3,4 @@ webHome = "https://bbs-api-static.miyoushe.com/apihub/wapi/webHome?gids={0}&page
 getPostFull = "https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={0}"
 emoticon_set = "https://bbs-api-static.miyoushe.com/misc/api/emoticon_set?gid={0}"
 getNewsList = "https://bbs-api.miyoushe.com/post/wapi/getNewsList?gids={0}&type={1}&page_size={2}&last_id={3}"
+searchPosts = "https://bbs-api.miyoushe.com/post/wapi/searchPosts?gids={0}&keyword={1}&last_id={2}&size={3}"

@@ -1,0 +1,1 @@
+pyinstaller --clean --noconfirm --onedir --windowed --icon "./appicon.ico" --add-data "./static;static/" --add-data "./templates;templates/" --add-data "./configs;configs/"  "./app.py"

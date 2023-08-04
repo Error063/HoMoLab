@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block body %}
     <div class="menu side">
-        <form action="/search" class="search">
+        <form action="/{{ game }}/search" class="search">
             <input type="text" name="content" id="content" value="{{ search }}">
-            <input type="submit" value="搜索">
+            <input type="submit" value="搜索" onclick="hidePostCards(null)">
         </form>
         <div class="areas">
             <a onclick="hidePostCards('/{{ game }}')">

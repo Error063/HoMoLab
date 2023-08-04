@@ -2,9 +2,6 @@
 {% block body %}
     <div class="article">
         <div class="thread">
-            <a href="/{{ game }}">
-                <button>返回首页</button>
-            </a>
             {# 作者信息 #}
             <div class="user fix">
                 <img class="avatar" src="{{ thread.getAuthorAvatar() }}"/>
@@ -16,6 +13,7 @@
             <div class="content ql-editor fix">
                 <h1 class="fix">{{ thread.getTitle() }}</h1>
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
+{#                <span>{{ thread.getRenderType() }}</span>#}
                 {% if type == 1 %}
                     {{ thread.getContent() | safe }}
                 {% elif type == 2 %}

@@ -3,11 +3,20 @@
 <head>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='icons/appicon.ico') }}">
     <script src="{{ url_for('static',filename='js/main.js') }}"></script>
     <meta charset="UTF-8">
     <title>米游社</title>
 </head>
 <body style="min-width: 650px;background: black">
+    <div class="headers">
+        <a onclick="window.history.back()">
+            <div class="back" style="background-image: url('{{ url_for('static',filename='icons/back.png') }}')"></div>
+        </a>
+        <a href="/{{ game }}">
+            <div class="home" style="background-image: url('{{ url_for('static',filename='icons/home.png') }}')"></div>
+        </a>
+    </div>
     <div class="main">
         {% block body %}
         {% endblock %}
