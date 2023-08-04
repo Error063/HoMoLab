@@ -1,21 +1,25 @@
 # encoding:utf-8
 import os
+import platform
 import pprint
 from functools import wraps
+from tkinter import Tk, messagebox
+
 from flask import Flask, render_template, request, redirect, make_response, send_file, url_for, send_from_directory
 from werkzeug.middleware.proxy_fix import ProxyFix
 import json
 import libhoyolab
 import webview
 
-with open('configs/config.json') as f:
+appicon_dir = './resources/appicon.ico'
+config_dir = './configs/config.json'
+
+with open(config_dir) as f:
     config = json.load(f)
 
 openLoad = config['openLoad']
 nowPage = openLoad
-
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app)
+theme = config['theme'] if 'theme' in config else 'standard'
 
 games = dict(bh3='1', ys='2', bh2='3', wd='4', dby='5', sr='6', zzz='8')
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
@@ -24,7 +28,9 @@ gamesName = {'bh3': '崩坏3', 'ys': '原神', 'bh2': '崩坏学园2', 'wd': '�
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
-browser = True
+
+app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 def LoadPage(func):
@@ -40,24 +46,24 @@ def LoadPage(func):
             print('browser that not allowed')
             return "<h1>app鉴权失败！</h1>", 403
         else:
-            return func(*args, **kwargs)
-            # try:
-            #     resp = make_response(func(*args, **kwargs))
-            #     resp.set_cookie('token', token)
-            #     if firstAccess:
-            #         firstAccess = False
-            #     return resp
-            # except Exception as e:
-            #     print(f"Error! {e}")
-            #     return "<p><h1>尝试处理请求时出现错误！</h1></p><p><button onclick='window.location.reload()'>重试</button></p>"
+            # return func(*args, **kwargs)
+            try:
+                resp = make_response(func(*args, **kwargs))
+                resp.set_cookie('token', token)
+                if firstAccess:
+                    firstAccess = False
+                return resp
+            except Exception as e:
+                print(f"Error! {e}")
+                return render_template('error.html')
 
     return wrapper
 
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'icons/appicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_file(appicon_dir)
+
 
 # 文章页
 @app.route('/article')
@@ -88,7 +94,8 @@ def main(game):
     global nowPage
     nowPage = game
     page = int(request.args.get('page') if 'page' in request.args else '1')
-    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
+    return render_template('main.html',
+                           articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
                            select='recommend', game=game, page=page, isLast=False)
 
 
@@ -112,7 +119,8 @@ def news(game):
     nowPage = game
     requestType = request.args.get('type') if 'type' in request.args else 'announce'
     page = request.args.get('page') if 'page' in request.args else '1'
-    return render_template('main.html', articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
+    return render_template('main.html',
+                           articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
                            select=requestType, game=game)
 
 
@@ -123,10 +131,8 @@ def setting():
         return render_template('settings.html', game=nowPage, isSaved=False, config=config)
     else:
         settings = request.form.to_dict()
-        print(settings)
         for k in settings:
             config[k] = settings[k]
-        print(config)
         openLoad = config['openLoad']
         nowPage = openLoad
         window.set_title(f'米游社 - {gamesName[openLoad]}')
@@ -144,5 +150,26 @@ def index():
 
 
 if __name__ == '__main__':
-    window = webview.create_window('米游社', app, min_size=(650, 800), width=1280, height=1000)
-    webview.start(user_agent=appUserAgent, debug=True if config['enableDebug'] == 'on' else False)
+    if platform.system() == 'Windows':
+        try:
+            window = webview.create_window('米游社', app, min_size=(650, 800), width=1280, height=1000)
+            webview.start(gui="edgechromium", user_agent=appUserAgent, debug=True if config['enableDebug'] == 'on' else False)
+
+        except KeyError:
+            # （我也不知道关闭窗口为什么会弹KeyError
+            pass
+
+        except KeyboardInterrupt:
+            pass
+
+        except:
+            # 如果用户系统中没有EdgeWebview的话，则弹窗提示用户安装环境
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
+
+    else:
+        # 如果系统不是windows的话，则弹窗提示用户不兼容
+        root = Tk()
+        root.withdraw()
+        messagebox.showerror(title="运行环境错误", message="当前应用仅支持在Windows环境下运行")
