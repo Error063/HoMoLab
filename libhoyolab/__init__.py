@@ -8,6 +8,7 @@ import urllib3
 import json
 import requests
 from libhoyolab import threadRender, accountLogin, urls
+import logging
 
 _USERAGENT = 'Mozilla/5.0 (Linux; Android 13; M2101K9C Build/TKQ1.220829.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/108.0.5359.128 Mobile Safari/537.36 miHoYoBBS/2.51.1'
 
@@ -56,7 +57,7 @@ def login():
 
 
 def getEmotions(gid='2'):
-    print('emotion lib is running')
+    logging.info('emotion lib is running')
     emotionDict = dict()
     req = session.get(urls.emoticon_set.format(str(gid)), verify=False)
     contents = json.loads(req.content.decode("utf8"))['data']['list']
@@ -70,8 +71,8 @@ def getEmotions(gid='2'):
 
 class Article:
     def __init__(self, post_id):
-        print(f'getting article from {post_id}')
-        print('accessing ' + urls.getPostFull.format(str(post_id)))
+        logging.info(f'getting article from {post_id}')
+        logging.info('accessing ' + urls.getPostFull.format(str(post_id)))
         count = 3
         while count != 0:
             try:
@@ -139,7 +140,7 @@ class Article:
 class Page:
     def __init__(self, gid, pageType, page=1, pageSize=50):
         self.page = page
-        print('getting page')
+        logging.info('getting page')
         if pageType == 'recommend':
             apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
         else:
@@ -149,7 +150,7 @@ class Page:
                 typeNum = newsType[pageType]
             apiUrl = urls.getNewsList.format(str(gid), str(typeNum), str(pageSize),
                                              str((int(page) - 1) * 50 + 1))
-        print('accessing ' + apiUrl)
+        logging.info('accessing ' + apiUrl)
         count = 3
         while count != 0:
             try:
@@ -196,14 +197,14 @@ class Comments:
         self.post_id = post_id
         self.gid = gid
         start = (int(page) - 1) * int(max_size) + 1
-        print(f"getting comments from {post_id}, start from {start}")
+        logging.info(f"getting comments from {post_id}, start from {start}")
         self.rank_by_hot = rank_by_hot
         self.comments = []
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
         self.have_top = False
         gid = str(gid)
         emotionDict = getEmotions(gid)
-        print("accessing " + urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
+        logging.info("accessing " + urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
                                                         str(start), str(orderby)))
         count = 3
         while count != 0:
@@ -254,8 +255,8 @@ class Search:
     def __init__(self, keyWords, gid, page=1, max_size=20):
         self.gid = gid
         start = int(page)
-        print(f'searching {keyWords}, from {start}')
-        print(f'accessing {urls.searchPosts.format(str(gid), str(keyWords),str(start), str(max_size))}')
+        logging.info(f'searching {keyWords}, from {start}')
+        logging.info(f'accessing {urls.searchPosts.format(str(gid), str(keyWords),str(start), str(max_size))}')
         count = 3
         while count != 0:
             try:
@@ -272,7 +273,7 @@ class Search:
         self.isLastFlag = result['data']['is_last']
         self.articles = list()
         for articleInfo in result['data']['posts']:
-            print(articleInfo['post']['subject'])
+            # logging.info(articleInfo['post']['subject'])
             # if articleInfo['post']['view_type'] not in [1, 2]:
             #     continue
             article = dict()
@@ -298,8 +299,8 @@ class Search:
 
 def debug():
     login()
-    pprint.pprint(headers)
+    pprint.plogging.info(headers)
     a = requests.get(f"https://bbs-api.miyoushe.com/user/api/getUserFullInfo", headers=headers)
-    print(a.cookies.get_dict())
+    logging.info(a.cookies.get_dict())
     j = a.json()
-    pprint.pprint(j)
+    pprint.plogging.info(j)

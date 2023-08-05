@@ -1,7 +1,8 @@
 # encoding:utf-8
 import os
+import time
 import platform
-import pprint
+import logging
 from functools import wraps
 from tkinter import Tk, messagebox
 
@@ -13,6 +14,14 @@ import webview
 
 appicon_dir = './resources/appicon.ico'
 config_dir = './configs/config.json'
+logs_dir = './logs'
+
+if not os.path.exists(logs_dir):
+    os.mkdir(logs_dir)
+
+logging.basicConfig(filename=f"{logs_dir}/app-{int(time.time())}.log",
+                    filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
+                    datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 
 with open(config_dir) as f:
     config = json.load(f)
@@ -20,6 +29,7 @@ with open(config_dir) as f:
 openLoad = config['openLoad']
 nowPage = openLoad
 theme = config['theme'] if 'theme' in config else 'standard'
+debug = True if config['enableDebug'] == 'on' else False
 
 games = dict(bh3='1', ys='2', bh2='3', wd='4', dby='5', sr='6', zzz='8')
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
@@ -37,25 +47,27 @@ def LoadPage(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         global firstAccess, nowPage
-        print("=" * 15)
-        print(f"access url: {request.url}")
-        print(f"remote ip: {request.remote_addr}")
-        print(f"user agent: {request.user_agent.string}")
+        logging.info("=" * 15)
+        logging.info(f"access url: {request.url}")
+        logging.info(f"remote ip: {request.remote_addr}")
+        logging.info(f"user agent: {request.user_agent.string}")
         userAgent = request.user_agent.string
         if userAgent != appUserAgent and ((request.cookies['token'] != token) or firstAccess):
-            print('browser that not allowed')
+            logging.info('browser that not allowed')
             return "<h1>app鉴权失败！</h1>", 403
         else:
-            # return func(*args, **kwargs)
-            try:
-                resp = make_response(func(*args, **kwargs))
-                resp.set_cookie('token', token)
-                if firstAccess:
-                    firstAccess = False
-                return resp
-            except Exception as e:
-                print(f"Error! {e}")
-                return render_template('error.html')
+            if debug:
+                return func(*args, **kwargs)
+            else:
+                try:
+                    resp = make_response(func(*args, **kwargs))
+                    resp.set_cookie('token', token)
+                    if firstAccess:
+                        firstAccess = False
+                    return resp
+                except Exception as e:
+                    logging.info(f"Error! {e}")
+                    return render_template('error.html'), 500
 
     return wrapper
 
@@ -93,7 +105,8 @@ def comments():
 def main(game):
     global nowPage
     nowPage = game
-    page = int(request.args.get('page') if 'page' in request.args else '1')
+    page = int('1' if 'page' not in request.args else request.args.get('page'))
+    logging.info(page)
     return render_template('main.html',
                            articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
                            select='recommend', game=game, page=page, isLast=False)
@@ -105,7 +118,7 @@ def main(game):
 def search(game):
     content = request.args.get('content')
     gameid = games[game]
-    page = int(request.args.get('page') if 'page' in request.args else '1')
+    page = int('1' if 'page' not in request.args else request.args.get('page'))
     search_result = libhoyolab.Search(keyWords=content, gid=gameid, page=page)
     return render_template('main.html', articles=search_result.getArticles(), search=content,
                            select='search', game=game, page=page, isLast=search_result.isLastFlag)
@@ -118,26 +131,29 @@ def news(game):
     global nowPage
     nowPage = game
     requestType = request.args.get('type') if 'type' in request.args else 'announce'
-    page = request.args.get('page') if 'page' in request.args else '1'
+    page = int(request.args.get('page') if 'page' in request.args else '1')
     return render_template('main.html',
                            articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
-                           select=requestType, game=game)
+                           select=requestType, game=game, page=page)
 
 
 @app.route('/setting', methods=['POST', 'GET'])
+@LoadPage
 def setting():
     global config, nowPage, openLoad
     if request.method == 'GET':
         return render_template('settings.html', game=nowPage, isSaved=False, config=config)
     else:
+        logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
         for k in settings:
             config[k] = settings[k]
         openLoad = config['openLoad']
         nowPage = openLoad
         window.set_title(f'米游社 - {gamesName[openLoad]}')
-        with open('configs/config.json', mode='w') as fp:
+        with open('configs/config.json', mode='w+') as fp:
             json.dump(config, fp)
+            logging.info(fp.read())
         return render_template('settings.html', game=nowPage, isSaved=True, config=config)
 
 
@@ -153,7 +169,7 @@ if __name__ == '__main__':
     if platform.system() == 'Windows':
         try:
             window = webview.create_window('米游社', app, min_size=(650, 800), width=1280, height=1000)
-            webview.start(gui="edgechromium", user_agent=appUserAgent, debug=True if config['enableDebug'] == 'on' else False)
+            webview.start(gui="edgechromium", user_agent=appUserAgent, debug=debug)
 
         except KeyError:
             # （我也不知道关闭窗口为什么会弹KeyError

@@ -1,5 +1,5 @@
 {% extends 'mainPage.html' %}
-{% block main %}
+{% block cards %}
     <div class="setting rights">
         <p><h1>设置</h1>
         <hr/>
@@ -23,7 +23,6 @@
         {% else %}
             <p></p>
         {% endif %}
-{#        <p><strong>以下所有设置均在下次启动时生效</strong></p>#}
         <form action="/setting" method="post">
             <div class="settingItem">
                 <input type="checkbox" name="enableDebug" id="enableDebug" value="on" {{ 'checked' if config['enableDebug'] == 'on' }}>
@@ -43,7 +42,7 @@
                 </select>
                 <label for="openLoad">（立即生效）</label>
             </div>
-            <div class="commit"><input type="submit" value="保存"></div>
+            <div class="commit"><input type="submit" class="pageButton" value="保存"></div>
         </form>
     </div>
 {% endblock %}

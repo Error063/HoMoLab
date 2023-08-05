@@ -478,4 +478,7 @@ iframe{
     background-color: red;
     padding: 10%;
 }
+.mhy-vod{
+    visibility: hidden;
+}
 
