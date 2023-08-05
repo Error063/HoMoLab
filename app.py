@@ -16,6 +16,8 @@ import json
 import libhoyolab
 import webview
 
+from libhoyolab import accountLogin
+
 appicon_dir = './resources/appicon.ico'
 config_dir = './configs/config.json'
 logs_dir = './logs'
@@ -31,7 +33,7 @@ root = Tk()
 root.withdraw()
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
-root.tk.call('tk', 'scaling', ScaleFactor/75)
+root.tk.call('tk', 'scaling', ScaleFactor / 75)
 
 configLoadFailed = False
 try:
@@ -41,7 +43,8 @@ except:
     config = {"openLoad": "ys", "enableDebug": "off"}
     configLoadFailed = True
     logging.warning('configs load failed')
-    messagebox.showwarning(title="配置文件加载失败", message=f"尝试加载配置文件时出现错误，因此您的所有设置将无法被保存！")
+    messagebox.showwarning(title="配置文件加载失败",
+                           message=f"尝试加载配置文件时出现错误，因此您的所有设置将无法被保存！")
 
 if not (os.path.exists('./resources')):
     logging.error('resource load failed')
@@ -66,6 +69,8 @@ gamesName = {'bh3': '崩坏3', 'ys': '原神', 'bh2': '崩坏学园2', 'wd': '�
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
+
+account = libhoyolab.Account()
 
 app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -120,7 +125,7 @@ def article():
     thread = libhoyolab.Article(post_id=post_id)
     render_method = thread.getRenderType()
     game = gamesById[int(thread.getGameId()) - 1]
-    return render_template('article.html', thread=thread, type=render_method, game=game)
+    return render_template('article.html', thread=thread, type=render_method, game=game, account=account)
 
 
 # 文章评论
@@ -131,7 +136,7 @@ def comments():
     gid = request.args.get("gid")
     page = request.args.get("page") if 'page' in request.args else '1'
     replies = libhoyolab.Comments(post_id=post_id, gid=gid, page=page)
-    return render_template('comment.html', thread=replies)
+    return render_template('comment.html', thread=replies, account=account)
 
 
 # 游戏分区主页
@@ -144,7 +149,7 @@ def main(game):
     logging.info(page)
     return render_template('main.html',
                            articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
-                           select='recommend', game=game, page=page, isLast=False)
+                           select='recommend', game=game, page=page, isLast=False, account=account)
 
 
 # 搜索
@@ -156,7 +161,7 @@ def search(game):
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     search_result = libhoyolab.Search(keyWords=content, gid=gameid, page=page)
     return render_template('main.html', articles=search_result.getArticles(), search=content,
-                           select='search', game=game, page=page, isLast=search_result.isLastFlag)
+                           select='search', game=game, page=page, isLast=search_result.isLastFlag, account=account)
 
 
 # 官方资讯
@@ -169,7 +174,7 @@ def news(game):
     page = int(request.args.get('page') if 'page' in request.args else '1')
     return render_template('main.html',
                            articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
-                           select=requestType, game=game, page=page)
+                           select=requestType, game=game, page=page, account=account)
 
 
 @app.route('/setting', methods=['POST', 'GET'])
@@ -181,7 +186,7 @@ def setting():
                                game=nowPage,
                                isSaved=False,
                                configLoadFailed=configLoadFailed,
-                               config=config)
+                               config=config, account=account)
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
@@ -198,7 +203,7 @@ def setting():
                                game=nowPage,
                                isSaved=True if not configLoadFailed else False,
                                configLoadFailed=configLoadFailed,
-                               config=config)
+                               config=config, account=account)
 
 
 # 跳转到原神分区
@@ -209,10 +214,28 @@ def index():
     return redirect(f'/{openLoad}')
 
 
+class Apis:
+    def accountHandler(self):
+        global account
+        logging.info("="*15)
+        logging.debug("accountHandler")
+        if account.isLogging:
+            if window.create_confirmation_dialog("登录", "确定退出登录吗？"):
+                libhoyolab.logout()
+                account = libhoyolab.Account()
+        else:
+            accountLogin.login()
+            if window.create_confirmation_dialog("登录", "若以完成登录，请点击确定按钮"):
+                libhoyolab.login()
+                account = libhoyolab.Account()
+        return {'status': 'ok'}
+
+
 if __name__ == '__main__':
+    apis = Apis()
     if platform.system() == 'Windows':
         try:
-            window = webview.create_window('米游社', app, min_size=(650, 800), width=1280, height=1000)
+            window = webview.create_window('米游社', app, min_size=(650, 800), width=1280, height=1000, js_api=apis)
             webview.start(gui="edgechromium", user_agent=appUserAgent, debug=debug)
 
         except KeyError:
@@ -226,4 +249,3 @@ if __name__ == '__main__':
 
     else:
         messagebox.showerror(title="运行环境错误", message="当前应用仅支持在Windows环境下运行")
-

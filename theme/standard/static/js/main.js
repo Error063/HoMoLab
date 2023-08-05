@@ -12,3 +12,10 @@ function hidePostCards(link) {
         window.location.href = link;
     }
 }
+function accountHandler() {
+    pywebview.api.accountHandler().then(function (status) {
+        if(status['status'] === 'ok'){
+            window.location.reload()
+        }
+    })
+}

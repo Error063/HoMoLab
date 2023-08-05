@@ -32,9 +32,9 @@
         <a onclick="hidePostCards('/setting')">
             <div class="account">
                 <div class="user fix">
-                    <img class="avatar" src="https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png"/>
+                    <img class="avatar" src="{{ account.getAvatar() }}"/>
                     <div class="userinfo">
-                        <div class="nickname">登录</div>
+                        <div class="nickname">{{ account.getNickname() }}</div>
                         <div class="describe"></div>
                     </div>
                 </div>

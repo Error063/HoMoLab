@@ -5,12 +5,12 @@
         <hr/>
         <p><h3>账户</h3>
         <div class="accountOuter">
-            <a onclick="window.alert('前面的区域，以后再来探索吧')">
+            <a onclick="accountHandler()">
                 <div class="accountInSetting account">
                     <div class="user fix userInSetting">
-                        <img class="avatar" src="https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png"/>
+                        <img class="avatar" src="{{ account.getAvatar() }}"/>
                         <div class="userinfo">
-                            <div class="nickname">尚不可用</div>
+                            <div class="nickname">{{ account.getNickname() }}</div>
                             <div class="describe"></div>
                         </div>
                     </div>
