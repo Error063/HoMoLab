@@ -1,6 +1,6 @@
 # HomoLab
 
-The Custom HoyoLab BBS application for Desktop
+The Custom HoyoLab (China)  BBS application for Desktop
 
 It is the earliest version, still developing...
 
