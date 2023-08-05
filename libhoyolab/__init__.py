@@ -30,6 +30,7 @@ headers = {
 }
 cookie_dict = dict()
 newsType = {'announce': '1', 'activity': '2', 'information': '3'}
+gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
 
 session = requests.session()
 
@@ -95,8 +96,8 @@ class Article:
         return str(self.result["data"]['post']['post']['game_id'])
 
     def getContent(self):
-        return threadRender.replaceEmotions(self.result["data"]['post']['post']['content'],
-                                            emotionDict=getEmotions(gid=self.getGameId()))
+        return threadRender.replaceAll(self.result["data"]['post']['post']['content'],
+                                       emotionDict=getEmotions(gid=self.getGameId()))
 
     def getRenderType(self):
         return self.result["data"]['post']['post']['view_type']
@@ -227,7 +228,7 @@ class Comments:
             tmp = {
                 'floor_id': reply['reply']['floor_id'],
                 'post_id': reply['reply']['post_id'],
-                'content': threadRender.replaceEmotions(reply['reply']['content'], emotionDict=emotionDict),
+                'content': threadRender.replaceAll(reply['reply']['content'], emotionDict=emotionDict),
                 'username': reply['user']['nickname'],
                 'avatar': reply['user']['avatar_url'],
                 'describe': reply['user']['certification']['label'] if len(

@@ -1,11 +1,15 @@
 # encoding:utf-8
 import os
+import signal
+import sys
 import time
 import platform
 import logging
 from functools import wraps
 from tkinter import Tk, messagebox
+import ctypes
 
+import jinja2
 from flask import Flask, render_template, request, redirect, make_response, send_file, url_for, send_from_directory
 from werkzeug.middleware.proxy_fix import ProxyFix
 import json
@@ -23,13 +27,37 @@ logging.basicConfig(filename=f"{logs_dir}/app-{int(time.time())}.log",
                     filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 
-with open(config_dir) as f:
-    config = json.load(f)
+root = Tk()
+root.withdraw()
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
+ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+root.tk.call('tk', 'scaling', ScaleFactor/75)
 
-openLoad = config['openLoad']
-nowPage = openLoad
-theme = config['theme'] if 'theme' in config else 'standard'
+configLoadFailed = False
+try:
+    with open(config_dir) as f:
+        config = json.load(f)
+except:
+    config = {"openLoad": "ys", "enableDebug": "off"}
+    configLoadFailed = True
+    logging.warning('configs load failed')
+    messagebox.showwarning(title="配置文件加载失败", message=f"尝试加载配置文件时出现错误，因此您的所有设置将无法被保存！")
+
+if not (os.path.exists('./resources')):
+    logging.error('resource load failed')
+    messagebox.showerror(title="资源文件加载失败", message=f"尝试加载资源文件时出现错误！")
+    sys.exit(-1)
+
+openLoad = nowPage = config['openLoad']
 debug = True if config['enableDebug'] == 'on' else False
+logging.info(f"debug mode: {config['enableDebug']}")
+theme = 'standard'
+if 'theme' in config:
+    theme = config['theme']
+if not (os.path.exists(f'./theme/{theme}/templates') and os.path.exists(f'./theme/{theme}/static')):
+    logging.error('gui load failed')
+    messagebox.showerror(title="用户界面加载失败", message=f"尝试加载 {theme} 时出现错误！")
+    sys.exit(-1)
 
 games = dict(bh3='1', ys='2', bh2='3', wd='4', dby='5', sr='6', zzz='8')
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
@@ -57,7 +85,11 @@ def LoadPage(func):
             return "<h1>app鉴权失败！</h1>", 403
         else:
             if debug:
-                return func(*args, **kwargs)
+                resp = make_response(func(*args, **kwargs))
+                resp.set_cookie('token', token)
+                if firstAccess:
+                    firstAccess = False
+                return resp
             else:
                 try:
                     resp = make_response(func(*args, **kwargs))
@@ -65,6 +97,9 @@ def LoadPage(func):
                     if firstAccess:
                         firstAccess = False
                     return resp
+                except jinja2.exceptions.TemplateNotFound as e:
+                    window.set_title("错误")
+                    return f'<h1 style="color: red;margin: 0 auto">尝试加载 {e} 时出现错误！</h1>'
                 except Exception as e:
                     logging.info(f"Error! {e}")
                     return render_template('error.html'), 500
@@ -142,7 +177,11 @@ def news(game):
 def setting():
     global config, nowPage, openLoad
     if request.method == 'GET':
-        return render_template('settings.html', game=nowPage, isSaved=False, config=config)
+        return render_template('settings.html',
+                               game=nowPage,
+                               isSaved=False,
+                               configLoadFailed=configLoadFailed,
+                               config=config)
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
@@ -151,10 +190,15 @@ def setting():
         openLoad = config['openLoad']
         nowPage = openLoad
         window.set_title(f'米游社 - {gamesName[openLoad]}')
-        with open('configs/config.json', mode='w+') as fp:
-            json.dump(config, fp)
-            logging.info(fp.read())
-        return render_template('settings.html', game=nowPage, isSaved=True, config=config)
+        if not configLoadFailed:
+            with open('configs/config.json', mode='w+') as fp:
+                json.dump(config, fp)
+                logging.info(fp.read())
+        return render_template('settings.html',
+                               game=nowPage,
+                               isSaved=True if not configLoadFailed else False,
+                               configLoadFailed=configLoadFailed,
+                               config=config)
 
 
 # 跳转到原神分区
@@ -172,20 +216,14 @@ if __name__ == '__main__':
             webview.start(gui="edgechromium", user_agent=appUserAgent, debug=debug)
 
         except KeyError:
-            # （我也不知道关闭窗口为什么会弹KeyError
             pass
 
         except KeyboardInterrupt:
             pass
 
         except:
-            # 如果用户系统中没有EdgeWebview的话，则弹窗提示用户安装环境
-            root = Tk()
-            root.withdraw()
             messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
 
     else:
-        # 如果系统不是windows的话，则弹窗提示用户不兼容
-        root = Tk()
-        root.withdraw()
         messagebox.showerror(title="运行环境错误", message="当前应用仅支持在Windows环境下运行")
+

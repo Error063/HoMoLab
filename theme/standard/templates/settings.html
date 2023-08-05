@@ -20,8 +20,8 @@
         <hr>
         {% if isSaved %}
             <p><strong>已保存！</strong></p>
-        {% else %}
-            <p></p>
+        {% elif configLoadFailed %}
+            <p><strong>尝试加载配置文件时出现错误，因此您的所有设置将无法被保存！</strong></p>
         {% endif %}
         <form action="/setting" method="post">
             <div class="settingItem">

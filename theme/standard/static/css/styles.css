@@ -156,7 +156,6 @@ body::-webkit-scrollbar {
 .postCard{
     width: 500px;
     height: 450px;
-    cursor: pointer;
     text-decoration: none;
     float: left;
     margin: 10px;
@@ -164,8 +163,11 @@ body::-webkit-scrollbar {
     background-color: #868585;
     border-radius: 10px;
 }
+.postCard:not(.control){
+    cursor: pointer;
+}
 .mainPageControl{
-    margin: 34%
+    padding: 34%
 }
 .mainPageControl .pageButton{
     margin: 14px;
@@ -206,7 +208,9 @@ body::-webkit-scrollbar {
         border-radius: unset;
     }
     .menu .blank{
-        display: none;
+        /*display: none;*/
+        float: left;
+        width: 16px;
     }
     .menu .area{
         float: left;
@@ -480,5 +484,9 @@ iframe{
 }
 .mhy-vod{
     visibility: hidden;
+}
+.setting p{
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 

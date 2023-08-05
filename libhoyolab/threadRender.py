@@ -1,4 +1,5 @@
 import re
+from libhoyolab import replace_regex
 
 
 def render(contents: list, emotionDict: dict):
@@ -60,9 +61,8 @@ def render(contents: list, emotionDict: dict):
     return output_html
 
 
-def replaceEmotions(contents: str, emotionDict: dict):
-    result = re.findall(r'_\((.*?)\)', contents)
-    for emo in result:
-        contents = contents.replace(f"_({emo})",
-                                    f'<img class="emoticon-image emotionIcon" src="{emotionDict[emo]}">')
+def replaceAll(contents: str, emotionDict: dict):
+    contents = re.sub(replace_regex.emotion,
+                      lambda m: f'<img class="emoticon-image emotionIcon" src="{emotionDict[m.group(1)]}">',
+                      re.sub(replace_regex.article, r'href="/article?id=\1"', contents))
     return contents
