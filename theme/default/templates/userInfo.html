@@ -1,0 +1,37 @@
+{% extends 'mainPage.html' %}
+{% block cards %}
+<div class="rights">
+    <div class="userBig">
+        <img src="{{ user.getAvatar() }}" alt="">
+         <p>{{ user.getNickname() }}</p>
+    </div>
+    <div class="posts">
+        {% for post in user.getUserPost()['posts'] %}
+            <a onclick="hidePostCards('/article?id={{ post['post_id'] }}')" style="cursor: pointer;text-decoration: none">
+                <div class="postCard fix">
+                    <div class="user">
+                        <img class="avatar" src="{{ post['authorAvatar'] }}"/>
+                        <div class="userinfo">
+                            <div class="nickname">{{ post['authorName'] }}</div>
+                            <div class="describe">{{ post['authorDescribe'] }}</div>
+                        </div>
+                    </div>
+                    {% if post['cover'] != '' %}
+                        <div class="image">
+                            <div class="articleCover" style="background-image: url({{ post['cover'] }})"></div>
+                        </div>
+                    {% else %}
+                        <div class="image">
+                            <div class="articleCover" style="background-color: #868585"></div>
+                        </div>
+                    {% endif %}
+                    <div class="info">
+                        <div class="articleTitle">{{ post['title'] }}</div>
+                        <div class="articleDescribe">{{ post['describe'] }}</div>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

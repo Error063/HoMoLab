@@ -25,7 +25,7 @@ if os.path.exists(account_dir):
     with open(account_dir) as f:
         account = json.load(f)
 else:
-    account = {"isLogging": False, "login_ticket": "", "stuid": "", "stoken": ""}
+    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
     with open(account_dir, mode='w') as f:
         json.dump(account, f)
 
@@ -150,6 +150,9 @@ class Article:
     def getAuthorAvatar(self):
         return self.result['data']['post']['user']['avatar_url']
 
+    def getAuthorUid(self):
+        return int(self.result['data']['post']['user']['uid'])
+
     def getAuthorDescribe(self):
         return f"{self.result['data']['post']['user']['certification']['label'] if len(self.result['data']['post']['user']['certification']['label']) > 0 else self.result['data']['post']['user']['introduce']}"
 
@@ -186,7 +189,6 @@ class Page:
         err = None
         while count != 0:
             try:
-
                 req = session.get(apiUrl, headers=headerGenerate(app='web'), verify=False, timeout=3)
                 break
             except Exception as e:
@@ -195,7 +197,7 @@ class Page:
                 continue
         if count == 0:
             raise Exception(f'Connection Failed! {err}')
-        result = json.loads(req.content.decode("utf8"))
+        result = req.json()
         self.articles = list()
         for articleInfo in result['data']['recommended_posts' if pageType == 'recommend' else 'list']:
             try:
@@ -209,6 +211,7 @@ class Page:
                 article['cover'] = articleInfo['post']['images'][0] if articleInfo['post']['cover'] == "" else \
                     articleInfo['post']['cover']
                 article['authorAvatar'] = articleInfo['user']['avatar_url']
+                article['uid'] = int(articleInfo['user']['uid'])
                 article['authorName'] = articleInfo['user']['nickname']
                 describe = articleInfo['user']['certification']['label'] if len(
                     articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
@@ -305,7 +308,7 @@ class Search:
                 continue
         if count == 0:
             raise Exception('Connection Failed!')
-        result = json.loads(req.content.decode("utf8"))
+        result = req.json()
         self.isLastFlag = result['data']['is_last']
         self.articles = list()
         for articleInfo in result['data']['posts']:
@@ -330,7 +333,6 @@ class Search:
                 articleInfo['user']['introduce']) > 15 else ''
             article['authorDescribe'] = describe
             article['type'] = articleInfo['post']['view_type']
-
             self.articles.append(article)
 
     def getArticles(self):
@@ -341,16 +343,16 @@ def login():
     global cookie, login_ticket, stuid, stoken, account
     with open(account_dir) as f:
         login_ticket = json.load(f)['login_ticket']
-    resp = requests.get(url=urls.Cookie_url.format(login_ticket))
+    resp = session.get(url=urls.Cookie_url.format(login_ticket))
     data = json.loads(resp.text.encode('utf-8'))
     logging.debug(str(data))
     if "成功" in data["data"]["msg"]:
         stuid = data["data"]["cookie_info"]["account_id"]
-        resp = requests.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
+        resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
         # print(response.text)
         data = json.loads(resp.text.encode('utf-8'))
         stoken = data["data"]["list"][0]["token"]
-        account = {"isLogging": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
+        account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
         logging.debug("tokens: " + str(account))
         with open(account_dir, mode='w') as f:
             json.dump(account, f)
@@ -363,27 +365,70 @@ def logout():
     login_ticket = ''
     stuid = ''
     stoken = ''
-    account = {"isLogging": False, "login_ticket": "", "stuid": "", "stoken": ""}
+    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
     with open(account_dir, mode='w') as f:
         json.dump(account, f)
 
 
-class Account:
-    def __init__(self):
-        resp = requests.get(f"https://bbs-api.miyoushe.com/user/api/getUserFullInfo",
-                            headers=headerGenerate(app='web', withCookie=True, withDs=True))
+class User:
+    def __init__(self, uid=0):
+        resp = session.get(urls.getUserFullInfo.format(uid),
+                           headers=headerGenerate(app='web', withCookie=True, withDs=True))
         info = resp.json()
         logging.debug(str(info))
-        if info['retcode'] == -100:
-            self.indo = dict()
-            self.isLogging = False
-        else:
+        self.isExist = False
+        self.isLogin = False
+        if info['retcode'] == 0:
             self.info = info['data']
-            self.isLogging = True
+            self.posts = list()
+            if uid == 0:
+                self.isLogin = True
+            self.isExist = True
+        else:
+            self.info = dict()
+            self.posts = list()
+
+    def getUid(self):
+        return int(self.info['user_info']['uid']) if self.isExist else 0
 
     def getNickname(self):
-        return self.info['user_info']['nickname'] if self.isLogging else '未登录'
+        return self.info['user_info']['nickname'] if self.isExist else '用户不存在'
 
     def getAvatar(self):
         return self.info['user_info'][
-            'avatar_url'] if self.isLogging else 'https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png'
+            'avatar_url'] if self.isExist else urls.defaultAvatar
+
+    def getUserPost(self, offset=0, size=20):
+        resp = session.get(urls.userPost.format(offset, size, self.getUid()))
+        posts = resp.json()['data']
+        userPosts = dict(isLast=posts['is_last'], posts=list(), next=posts['next_offset'])
+        for articleInfo in posts['list']:
+            article = dict()
+            article['post_id'] = articleInfo['post']['post_id']
+            article['title'] = articleInfo['post']['subject']
+            article['describe'] = articleInfo['post']['content'][:50] + str(
+                "..." if len(articleInfo['post']['content']) > 50 else '')
+            try:
+                article['cover'] = articleInfo['post']['cover'] if articleInfo['post']['cover'] != "" else \
+                    articleInfo['post']['images'][0]
+            except:
+                article['cover'] = ''
+            article['authorAvatar'] = articleInfo['user']['avatar_url']
+            article['authorName'] = articleInfo['user']['nickname']
+            describe = articleInfo['user']['certification']['label'] if len(
+                articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
+                                                                        :15] + '...' if len(
+                articleInfo['user']['introduce']) > 15 else ''
+            article['authorDescribe'] = describe
+            article['type'] = articleInfo['post']['view_type']
+            userPosts['posts'].append(article)
+
+        return userPosts
+
+
+def debug(url, path='./debugs/'):
+    resp = session.get(url, headers=headerGenerate())
+    contents = resp.text
+    with open(f'{path}/debug-{int(time.time())}.json', mode='w') as f:
+        f.write(contents)
+    print("ok")

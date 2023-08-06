@@ -56,9 +56,9 @@ page = """<!DOCTYPE html>
 </head>
 <body>
     <p><button class="login_user" onclick="afterShowLoginPage()" style="display: block">登录通行证</button></p>
-    <p><button class="end" onclick="afterLoginSuccess_user()" style="display: none">结束</button></p>
+    <p><button class="end" onclick="afterLoginSuccess_user()" style="display: none">完成</button></p>
     <h1 class="ableToClose" style="display: none">现在可以关闭该页面了</h1>
-    <p class="step" style="margin: 0 auto;">步骤：在打开通行证后,登录通行证</p>
+    <p class="step" style="margin: 0 auto;">步骤：在打开通行证页面后,登录通行证</p>
 </body>
 </html>"""
 
