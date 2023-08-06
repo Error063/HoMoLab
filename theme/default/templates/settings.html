@@ -3,19 +3,17 @@
     <div class="setting rights">
         <p><h1>设置</h1>
         <hr/>
-        <p><h3>账户</h3>
-        <div class="accountOuter">
-            <a onclick="accountHandler()">
-                <div class="accountInSetting account">
-                    <div class="user fix userInSetting">
-                        <img class="avatar" src="{{ account.getAvatar() }}"/>
-                        <div class="userinfo">
-                            <div class="nickname">{{ account.getNickname() }}</div>
-                            <div class="describe"></div>
-                        </div>
-                    </div>
-                </div>
-            </a>
+        <div class="accountSettings">
+            <p>
+            <h3>账户：{{ account.getNickname() }}</h3>
+            <div class="buttons">
+                <button onclick="accountHandler()"
+                        class="accountHandler"
+                        style="{{ 'background-color:red;' if account.isLogin else '' }}">
+                    {{ '退出登录' if account.isLogin else '登录' }}
+                </button>
+                <button onclick="refreshLoginStatus()" class="refreshLoginStatus">刷新登录状态</button>
+            </div>
         </div>
         <hr>
         {% if isSaved %}
@@ -44,5 +42,9 @@
             </div>
             <div class="commit"><input type="submit" class="pageButton" value="保存"></div>
         </form>
+        <hr/>
+        <div class="deleteLog">
+            <button onclick="deleteLog()" class="refreshLoginStatus">清除日志</button>
+        </div>
     </div>
 {% endblock %}

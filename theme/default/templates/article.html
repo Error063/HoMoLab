@@ -3,7 +3,7 @@
     <div class="article">
         <div class="thread">
             {# 作者信息 #}
-            <div class="user fix">
+            <div class="user fix" onclick="window.location.href = '/user?uid={{ thread.getAuthorUid() }}'">
                 <img class="avatar" src="{{ thread.getAuthorAvatar() }}"/>
                 <div class="userinfo">
                     <div class="nickname">{{ thread.getAuthor() }}</div>
@@ -13,7 +13,6 @@
             <div class="content ql-editor fix">
                 <h1 class="fix">{{ thread.getTitle() }}</h1>
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
-{#                <span>{{ thread.getRenderType() }}</span>#}
                 {% if type == 1 %}
                     {{ thread.getContent() | safe }}
                 {% elif type == 2 %}
@@ -25,6 +24,8 @@
                             </div>
                         </div>
                     {% endfor %}
+                {% elif type == 5 %}
+                    <span style="color: yellow; font-size: 20px;">[视频暂不支持播放]</span>
                 {% endif %}
             </div>
             <br>

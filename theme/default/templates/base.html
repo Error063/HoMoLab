@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='icons/appicon.ico') }}">
+    <script src="{{ url_for('static',filename='js/main.js') }}"></script>
+    <meta charset="UTF-8">
+    <title>米游社</title>
+</head>
+<body style="min-width: 650px;background: black">
+    <div class="headers">
+        <div class="controllers">
+            <a onclick="pageControl('back')">
+                <div class="back controller" style="background-image: url('/resources?controllers')"></div>
+            </a>
+            <a onclick="pageControl('reload')">
+                <div class="reload controller" style="background-image: url('/resources?controllers')"></div>
+            </a>
+            <a href="/">
+                <div class="home controller" style="background-image: url('/resources?controllers')"></div>
+            </a>
+        </div>
+        <div class="headerMiddle">
+            <div class="forumLogo" style="background-image: url('/resources?logo={{ game }}')"></div>
+            <select class="forumChange" name="forumChange" id="forumChange" onchange="forumChange()">
+                    <option value="ys" {{ 'selected' if game == 'ys'  }}>原神</option>
+                    <option value="bh3" {{ 'selected' if game == 'bh3'  }}>崩坏3</option>
+                    <option value="bh2" {{ 'selected' if game == 'bh2'  }}>崩坏学院2</option>
+                    <option value="dby" {{ 'selected' if game == 'dby'  }}>大别野</option>
+                    <option value="sr" {{ 'selected' if game == 'sr'  }}>崩坏：星穹铁道</option>
+                    <option value="zzz" {{ 'selected' if game == 'zzz'  }}>绝区零</option>
+                    <option value="wd" {{ 'selected' if game == 'wd'  }}>未定事件簿</option>
+            </select>
+        </div>
+        <div class="userControllers">
+            <a href="/setting">
+                <div class="setting controller" style="background-image: url('/resources?controllers')"></div>
+            </a>
+        </div>
+    </div>
+    <div class="main">
+        {% block body %}
+        {% endblock %}
+    </div>
+</body>
+</html>

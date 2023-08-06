@@ -6,3 +6,7 @@ getNewsList = "https://bbs-api.miyoushe.com/post/wapi/getNewsList?gids={0}&type=
 searchPosts = "https://bbs-api.miyoushe.com/post/wapi/searchPosts?gids={0}&keyword={1}&last_id={2}&size={3}"
 Cookie_url = "https://webapi.account.mihoyo.com/Api/cookie_accountinfo_by_loginticket?login_ticket={0}"
 Cookie_url2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={}&token_types=3&uid={}"
+getUserFullInfo = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={0}"
+userPost = "https://bbs-api.miyoushe.com/post/wapi/userPost?offset={0}&size={1}&uid={2}"
+userReply = "https://bbs-api.miyoushe.com/post/wapi/userReply?offset={0}&size={1}&uid={2}"
+defaultAvatar = "https://img-static.mihoyo.com/communityweb/upload/c9d11674eac7631d2210a1ba20799958.png"
