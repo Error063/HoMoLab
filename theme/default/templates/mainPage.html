@@ -29,7 +29,7 @@
             </a>
         </div>
         <div class="autoFit"></div>
-        <a onclick="hidePostCards('/user')">
+        <a onclick="hidePostCards('{{ "/user" if account.isLogin else "/setting" }}')">
             <div class="account">
                 <div class="user fix">
                     <img class="avatar" src="{{ account.getAvatar() }}"/>

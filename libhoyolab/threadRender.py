@@ -1,68 +1,33 @@
+import json
+import random
 import re
+import time
+
 from libhoyolab import replace_regex
 
 
-def render(contents: list, emotionDict: dict):
-    output_html = '<meta charset="UTF-8">'
-    para = ''
-    for i in range(len(contents)):
-        content = contents[i]
-        insert: str | dict = content["insert"]
-        align = 'unset'
-        try:
-            if (contents[i + 1]['insert'] == "\n") and ('attributes' in contents[i + 1].keys()):
-                if 'align' in contents[i + 1]['attributes'].keys():
-                    align = contents[i + 1]['attributes']['align']
-        except IndexError:
-            pass
-        if type(insert) is dict:
-            if 'image' in insert.keys():
-                tmp = f'<div class="imageBox" style="background: no-repeat 100% 100%; background-size: cover; background-image: {insert["image"]}">'
-                output_html += tmp
-
-            elif "link_card" in insert.keys():
-                tmp = f'<a href="{insert["link_card"]["landing_url"]}"><div style="margin:0 auto;background-color: #b6b5b5;border: none;border-radius: 10px"><img src="{insert["link_card"]["cover"]}" height=100 width=100 style="float: left"><label>{insert["link_card"]["title"]}</label></div></a>'
-                output_html += tmp
-
-            elif "divider" in insert:
-                output_html += "<hr/>"
-
-        elif type(insert) is str:
-            if insert == "\n":
-                output_html += f'<p>{para}</p>'
-                para = ''
-            elif insert == "\n\n":
-                output_html += f'<p>{para}</p><br/>'
-                para = ''
+def replaceAllFromDelta(contents: list | str, emotionDict: dict):
+    if type(contents) is str:
+        contents = json.loads(contents)
+    new_contents = list()
+    for content in contents:
+        if type(content['insert']) is str:
+            emotions = re.findall(replace_regex.emotion, content['insert'])
+            if len(emotions) > 0:
+                for emotion in emotions:
+                    new_contents.append({'insert': {'image': emotionDict[emotion], "attributes": {"height": 100, "width": 100}}})
             else:
-                for text in insert.split("\n"):
-                    if "attributes" in content.keys():
-                        if "bold" in content["attributes"]:
-                            tmp = '<strong style="{1}">{0}</strong>'
-                        else:
-                            tmp = '<span style="{1}">{0}</span>'
-                        if "color" in content["attributes"].keys():
-                            style = f"color:{content['attributes']['color']};text-align:{align}"
-                        else:
-                            style = f"text-align:{align};"
-                        if 'link' in content["attributes"].keys():
-                            para += tmp.format('<a href="' + content['attributes'][
-                                "link"] + f'" style="text-align:{align}" >{text}</a>', style)
-                        else:
-                            para += tmp.format(insert, style)
-                    else:
-                        para += f'<p style="text-align:{align}">{text}</p>'
+                new_contents.append(content)
+        else:
+            new_contents.append(content)
 
-                    result = re.findall(r'_\((.*?)\)', para)
-                    for emo in result:
-                        para = para.replace(f"_({emo})",
-                                            f'<img class="emoticon-image emotionIcon" src="{emotionDict[emo]}">')
-    output_html += f'<p>{para}</p>'
-    return output_html
+    return json.dumps(new_contents, ensure_ascii=False)
 
 
 def replaceAll(contents: str, emotionDict: dict):
     contents = re.sub(replace_regex.emotion,
                       lambda m: f'<img class="emoticon-image emotionIcon" src="{emotionDict[m.group(1)]}">',
-                      re.sub(replace_regex.article, r'href="/article?id=\1"', contents))
+                      contents)
+    contents = re.sub(replace_regex.article, lambda m: f'<a href="/article?id={m.group(1)}">', contents)
+    contents = re.sub(replace_regex.user, lambda m: f'<a href="/user?uid={m.group(1)}">', contents)
     return contents

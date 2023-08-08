@@ -4,6 +4,7 @@ import sys
 import time
 import platform
 import logging
+import winreg
 from functools import wraps
 from tkinter import Tk, messagebox
 import ctypes
@@ -36,21 +37,21 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
 root.tk.call('tk', 'scaling', ScaleFactor / 75)
 
-configLoadFailed = False
-try:
-    with open(config_dir) as f:
-        config = json.load(f)
-except:
-    config = {"openLoad": "ys", "enableDebug": "off"}
-    configLoadFailed = True
-    logging.warning('configs load failed')
-    messagebox.showwarning(title="配置文件加载失败",
-                           message=f"尝试加载配置文件时出现错误，因此您的所有设置将无法被保存！")
-
 if not (os.path.exists('./resources')):
     logging.error('resource load failed')
     messagebox.showerror(title="资源文件加载失败", message=f"尝试加载资源文件时出现错误！")
     sys.exit(-1)
+
+try:
+    with open(config_dir) as f:
+        config = json.load(f)
+except FileNotFoundError:
+    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on"}
+    logging.warning('configs load failed, creating...')
+    if not os.path.exists(config_dir + '/..'):
+        os.mkdir(config_dir + '/..')
+    with open(config_dir, mode='w') as f:
+        json.dump(config, f)
 
 openLoad = nowPage = config['openLoad']
 debug = True if config['enableDebug'] == 'on' else False
@@ -67,6 +68,8 @@ games = dict(bh3='1', ys='2', bh2='3', wd='4', dby='5', sr='6', zzz='8')
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
 gamesName = {'bh3': '崩坏3', 'ys': '原神', 'bh2': '崩坏学园2', 'wd': '未定事件簿', 'dby': '大别野',
              'sr': '崩坏：星穹铁道', '': '空', 'zzz': '绝区零'}
+actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "activity": "活动", "information": "资讯",
+           "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误"}
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
@@ -74,6 +77,23 @@ account = libhoyolab.User()
 
 app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
 app.wsgi_app = ProxyFix(app.wsgi_app)
+
+
+def systemColorSet():
+    if config['colorFollowSystem'] == 'on':
+        if winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\DWM"),
+                               'ColorPrevalence')[0] == 1:
+            color = hex(winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\DWM"),
+                                            'ColorizationColor')[0])[4:]
+        else:
+            color = 'ffffff'
+        light = winreg.QueryValueEx(
+            winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"),
+            'AppsUseLightTheme')[0]
+    else:
+        color = '66adff'
+        light = 1
+    return color, light
 
 
 def LoadPage(func):
@@ -85,9 +105,9 @@ def LoadPage(func):
         logging.info(f"remote ip: {request.remote_addr}")
         logging.info(f"user agent: {request.user_agent.string}")
         userAgent = request.user_agent.string
-        if userAgent != appUserAgent and ((request.cookies['token'] != token) or firstAccess):
+        if userAgent != appUserAgent:
             logging.info('browser that not allowed')
-            return "<h1>app鉴权失败！</h1>", 403
+            return '<h1 style="color: red;text-align: center">APP鉴权失败！</h1>', 403
         else:
             account = libhoyolab.User()
             if debug:
@@ -104,11 +124,12 @@ def LoadPage(func):
                         firstAccess = False
                     return resp
                 except jinja2.exceptions.TemplateNotFound as e:
+                    logging.error(os.getcwd())
                     window.set_title("错误")
-                    return f'<h1 style="color: red;margin: 0 auto">尝试加载 {e} 时出现错误！</h1>'
+                    return f'<h1 style="color: red;text-align: center">尝试加载 {e} 时出现错误！</h1>'
                 except Exception as e:
                     logging.info(f"Error! {e}")
-                    return render_template('error.html'), 500
+                    return render_template('error.html', select='error', viewActions=actions), 500
 
     return wrapper
 
@@ -118,18 +139,51 @@ def favicon():
     return send_file(appicon_dir)
 
 
+@app.route('/personal.css')
+@LoadPage
+def personal():
+    colorSet = systemColorSet()
+    css = """
+    .headers { 
+        background-color: #""" + colorSet[0] + """;
+    }
+    """
+    resp = make_response(css)
+    resp.content_type = "text/css"
+    return resp
+
+
 @app.route('/resources')
+@LoadPage
 def resources():
     if 'logo' in request.args:
         logo = request.args.get('logo')
-        if logo not in gamesById:
-            return '404 File not Found!', 404
+        if logo in gamesById:
+            return send_file(f'./resources/logos/{logo}.jpg')
         if logo == 'appicon':
             return send_file(f'./resources/logos/appicon.png')
         else:
-            return send_file(f'./resources/logos/{logo}.jpg')
+            return '404 File not Found!', 404
     elif 'controllers' in request.args:
         return send_file('./resources/pageControllers.png')
+    elif 'js' in request.args:
+        return send_file('./resources/js/main.js')
+    elif 'css' in request.args:
+        match request.args.get('css'):
+            case 'hoyolab':
+                return send_file('./resources/css/hoyolabstyles.css')
+            case _:
+                return '404 File not Found!', 404
+    elif 'font' in request.args:
+        match request.args.get('font'):
+            case '34ec64a':
+                return send_file('./resources/font/iconfont.34ec64a.woff')
+            case '33542c4':
+                return send_file('./resources/font/iconfont.33542c4.ttf')
+            case '72957bf':
+                return send_file('./resources/font/iconfont.72957bf.woff2')
+            case _:
+                return '404 File not Found!', 404
     else:
         return '404 File not Found!', 404
 
@@ -142,7 +196,8 @@ def article():
     thread = libhoyolab.Article(post_id=post_id)
     render_method = thread.getRenderType()
     game = gamesById[int(thread.getGameId()) - 1]
-    return render_template('article.html', thread=thread, type=render_method, game=game, account=account, gamesName=gamesName)
+    return render_template('article.html', select='article', thread=thread, type=render_method, game=nowPage,
+                           account=account, gamesName=gamesName, viewActions=actions)
 
 
 # 文章评论
@@ -162,12 +217,13 @@ def comments():
 def main(game):
     global nowPage
     nowPage = game
-    window.set_title(f'米游社 - {gamesName[game]}')
+    window.set_title(f'HoMoLab - {gamesName[game]}')
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     logging.info(page)
     return render_template('main.html',
-                           articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').getArticles(),
-                           select='recommend', game=game, page=page, isLast=False, account=account, gamesName=gamesName)
+                           articles=libhoyolab.Page(gid=games[game], page=page, pageType='recommend').articles,
+                           select='recommend', game=nowPage, viewActions=actions, page=page, isLast=False, account=account,
+                           gamesName=gamesName)
 
 
 # 搜索
@@ -179,7 +235,8 @@ def search(game):
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     search_result = libhoyolab.Search(keyWords=content, gid=gameid, page=page)
     return render_template('main.html', articles=search_result.getArticles(), search=content,
-                           select='search', game=game, page=page, isLast=search_result.isLastFlag, account=account, gamesName=gamesName)
+                           select='search', game=nowPage, viewActions=actions, page=page, isLast=search_result.isLastFlag, account=account,
+                           gamesName=gamesName)
 
 
 # 官方资讯
@@ -191,8 +248,8 @@ def news(game):
     requestType = request.args.get('type') if 'type' in request.args else 'announce'
     page = int(request.args.get('page') if 'page' in request.args else '1')
     return render_template('main.html',
-                           articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).getArticles(),
-                           select=requestType, game=game, page=page, account=account, gamesName=gamesName)
+                           articles=libhoyolab.Page(gid=games[game], page=page, pageType=requestType).articles,
+                           select=requestType, game=nowPage, viewActions=actions, page=page, account=account, gamesName=gamesName)
 
 
 @app.route('/setting', methods=['POST', 'GET'])
@@ -200,48 +257,51 @@ def news(game):
 def setting():
     global config, nowPage, openLoad
     if request.method == 'GET':
-        return render_template('settings.html',
-                               game=nowPage,
-                               isSaved=False,
-                               configLoadFailed=configLoadFailed,
-                               config=config, account=account, gamesName=gamesName)
+        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=False, config=config,
+                               account=account, gamesName=gamesName)
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
         for k in settings:
             config[k] = settings[k]
         openLoad = config['openLoad']
-        if not configLoadFailed:
-            with open('configs/config.json', mode='w+') as fp:
-                json.dump(config, fp)
-                logging.info(fp.read())
-        return render_template('settings.html',
-                               game=nowPage,
-                               isSaved=True if not configLoadFailed else False,
-                               configLoadFailed=configLoadFailed,
-                               config=config, account=account, gamesName=gamesName)
+        with open('configs/config.json', mode='w+') as fp:
+            json.dump(config, fp)
+            logging.info(fp.read())
+        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True, config=config,
+                               account=account, gamesName=gamesName)
 
 
 @app.route('/user')
 @LoadPage
 def user():
-    uid = request.args.get('uid') if 'uid' in request.args else account.getUid()
+    uid = request.args.get('uid') if 'uid' in request.args else 0
     userInfos = libhoyolab.User(int(uid))
-    return render_template('userInfo.html', account=account, game=nowPage, user=userInfos, gamesName=gamesName)
+    return render_template('userInfo.html', select='user', account=account, game=nowPage, viewActions=actions, user=userInfos,
+                           gamesName=gamesName)
+
+
+@app.route('/history')
+def history():
+    page = int(request.args.get('page')) if 'page' in request.args else 1
+    offset = ((page - 1) * 20) + 1
+    history_posts = libhoyolab.Actions().getHistory(offset)
+    return render_template('main.html', articles=history_posts[0], select='history', game=nowPage,
+                           page=page, account=account, gamesName=gamesName, isLast=history_posts[1], viewActions=actions)
 
 
 # 跳转到指定分区
 @app.route('/')
 @LoadPage
 def index():
-    window.set_title(f'米游社 - {gamesName[nowPage]}')
+    window.set_title(f'HoMoLab - {gamesName[nowPage]}')
     return redirect(f'/{nowPage}')
 
 
 class Apis:
     def accountHandler(self):
         global account
-        logging.info("="*15)
+        logging.info("=" * 15)
         logging.debug("accountHandler")
         if account.isLogin:
             if window.create_confirmation_dialog("登录", "确定要退出登录吗？"):
@@ -258,7 +318,7 @@ class Apis:
 
     def refreshLoginStatus(self):
         global account
-        logging.info("="*15)
+        logging.info("=" * 15)
         logging.debug("refreshLoginStatus")
         libhoyolab.login()
         account = libhoyolab.User()
@@ -266,7 +326,7 @@ class Apis:
         return {'status': 'ok'}
 
     def deleteLog(self):
-        logging.info("="*15)
+        logging.info("=" * 15)
         logging.debug("deleteLog")
         log_list = os.listdir(logs_dir)
         try:
@@ -279,22 +339,41 @@ class Apis:
             logging.error(f'failed to delete log because {e}')
             return {'status': 'failed'}
 
+    def getColor(self):
+        logging.info("=" * 15)
+        logging.debug("getColor")
+        return {"colorSet": systemColorSet()}
+
+    def followUser(self, uid, action):
+        if action == 'unfollow':
+            result = libhoyolab.Actions().follow(uid)
+        else:
+            result = libhoyolab.Actions().unfollow(uid)
+        if result[0] == 0:
+            return {'status': 'ok'}
+        else:
+            return {'status': f'err, {result[-1]}'}
+
+    def upVote(self, post_id, isCancel):
+        result = libhoyolab.Actions().upvotePost(post_id, isCancel)
+        if result[0] == 0:
+            return {'status': 'ok'}
+        else:
+            return {'status': f'err, {result[-1]}'}
+
 
 if __name__ == '__main__':
     apis = Apis()
     if platform.system() == 'Windows':
         try:
-            window = webview.create_window('米游社', app, min_size=(800, 800), width=1280, height=1000, js_api=apis)
+            window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis,
+                                           focus=True)
             webview.start(gui="edgechromium", user_agent=appUserAgent, debug=debug)
-
         except KeyError:
             pass
-
         except KeyboardInterrupt:
             pass
-
-        except Exception:
+        except webview.util.WebViewException:
             messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
-
     else:
         messagebox.showerror(title="运行环境错误", message="当前应用仅支持在Windows环境下运行")

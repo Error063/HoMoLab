@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
+    <link rel="stylesheet" type="text/css" href="/resources?css=hoyolab">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='icons/appicon.ico') }}">
-    <script src="{{ url_for('static',filename='js/main.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="/personal.css">
+    <script src="/resources?js"></script>
     <meta charset="UTF-8">
     <title>米游社</title>
 </head>
@@ -17,7 +17,7 @@
             <a onclick="pageControl('reload')">
                 <div class="reload controller" style="background-image: url('/resources?controllers')"></div>
             </a>
-            <a href="/">
+            <a onclick="hideAndRedirect('/')">
                 <div class="home controller" style="background-image: url('/resources?controllers')"></div>
             </a>
         </div>
@@ -32,10 +32,16 @@
                     <option value="zzz" {{ 'selected' if game == 'zzz'  }}>绝区零</option>
                     <option value="wd" {{ 'selected' if game == 'wd'  }}>未定事件簿</option>
             </select>
+            <div class="userActionView">
+                {{ viewActions[select] }}
+            </div>
         </div>
         <div class="userControllers">
-            <a href="/setting">
-                <div class="setting controller" style="background-image: url('/resources?controllers')"></div>
+            <a onclick="hideAndRedirect('/history')">
+                <div class="history controller" style="background-image: url('/resources?controllers')"></div>
+            </a>
+            <a onclick="hideAndRedirect('/setting')">
+                <div class="settingIcon controller" style="background-image: url('/resources?controllers')"></div>
             </a>
         </div>
     </div>

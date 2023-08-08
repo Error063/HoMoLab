@@ -8,3 +8,5 @@
 /build/app/*
 /logs/
 /debugs/
+/configs/account.json
+/configs/

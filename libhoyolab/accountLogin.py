@@ -103,9 +103,9 @@ def login():
     api = apis()
     loginAccount_user = webview.create_window(title="!!!完成登录操作前请勿关闭该窗口!!!",
                                               url="https://user.mihoyo.com", hidden=True,
-                                              confirm_close=True)
+                                              confirm_close=True, height=900, width=900)
     main = webview.create_window(js_api=api, on_top=True, x=10, y=10, title='!!!完成登录操作前请勿关闭该窗口!!!',
-                                 html=page, minimized=False, confirm_close=True)
+                                 html=page, minimized=False, confirm_close=True, resizable=False)
     # webview.start(debug=True)
 
     return cookies

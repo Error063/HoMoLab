@@ -1,9 +1,9 @@
 *{
     direction: ltr;
 }
-a{
-    color: #000;
-}
+/*a{*/
+/*    color: #000;*/
+/*}*/
 /* clearfix */
 .fix::after{
     content: "";
@@ -33,7 +33,7 @@ body::-webkit-scrollbar {
     left: 0;
     width: 100%;
     height: 30px;
-    background-color: #66adff;
+    /*background-color: var(--system-color);*/
     z-index: 9999;
 }
 .headers .controllers{
@@ -57,14 +57,14 @@ body::-webkit-scrollbar {
     height: 14px;
     width: 14px;
     margin: 8px;
+    cursor: default;
 }
-.headers .setting{
-    background: none no-repeat 97% 0;
+.headers .settingIcon{
+    background: none no-repeat -45px 0;
     background-size: cover;
 }
 .headers .reload{
-    background: none no-repeat 35% 0;
-    cursor: default;
+    background: none no-repeat -16px 0;
     background-size: cover;
 }
 .headers .back {
@@ -72,12 +72,16 @@ body::-webkit-scrollbar {
     background-size: cover;
 }
 .headers .home {
-    background: none no-repeat 68% 0;
+    background: none no-repeat -31px 0;
+    background-size: cover;
+}
+.headers .history{
+    background: none no-repeat -62px 0;
     background-size: cover;
 }
 .headers .headerMiddle{
     float: left;
-    width: 30%;
+    width: 300px;
     height: 30px;
     margin-left: 20px;
     text-align: center;
@@ -98,7 +102,11 @@ body::-webkit-scrollbar {
     height: 16px;
     border: none;
     border-radius: 2px;
-    background-color: #66adff;
+    background-color: inherit;
+}
+.headers .action{
+    float: left;
+    margin-left: 30px;
 }
 .main{
     margin-top: 30px;
@@ -223,9 +231,6 @@ body::-webkit-scrollbar {
     margin: 14px;
 }
 .setting{
-    float: right;
-    width: 60%;
-    /*height: 800px;*/
     margin-top: 10px;
     margin-right: 12%;
     background-color: #008cff;
@@ -299,6 +304,8 @@ body::-webkit-scrollbar {
         padding: unset;
     }
     .setting{
+        width: 60%;
+        min-width: 500px;
         padding: 3%;
     }
     .postCard{
@@ -319,6 +326,9 @@ body::-webkit-scrollbar {
     }
     .rights{
         margin: 135px 10px 10px;
+    }
+    .setting{
+        width: 500px;
     }
 }
 /* user */
@@ -468,6 +478,7 @@ iframe{
     max-height: 40px;
     margin-right: 3px;
     border-radius: 50%;
+    background-color: white;
 }
 .tag .tagTitle {
     font-size: 14px;
@@ -490,16 +501,16 @@ iframe{
 .reply img:not(.avatar){
     margin-top: 10px;
 }
-.reply .comment img:not(.emotionIcon) {
-    object-fit: cover;
-    width: 100%;
-    /*height: 100%;*/
-    display: inline-block;
-    border: none;
-    border-radius: 10px;
-    margin: 0 auto;
-    background-color: white;
-}
+/*.reply .comment img:not(.emotionIcon) {*/
+/*    object-fit: cover;*/
+/*    width: 100%;*/
+/*    !*height: 100%;*!*/
+/*    display: inline-block;*/
+/*    border: none;*/
+/*    border-radius: 10px;*/
+/*    margin: 0 auto;*/
+/*    background-color: white;*/
+/*}*/
 .reply .comment img:after {
     content:'';
     display: block;
@@ -570,22 +581,60 @@ iframe{
 }
 .userBig{
     width: 80%;
-    height: 450px;
+    height: 150px;
     border-radius: 10px;
     background-color: #4d96ea;
-    margin: 20px auto 0;
+    margin: 200px auto 0;
+    padding: 20px;
+}
+.userBig img{
+    float: left;
+    height: 100px;
+    width: 100px;
+    margin: -50px 2% 2%;
+    border-radius: 50%;
+}
+.userBig h1{
+    float: left;
+}
+.userBig .followBtn{
+    float: right;
+    margin: 20px;
+    width: 100px;
+    height: 30px;
+    border: #00eaff 10px;
+    border-radius: 10px;
+}
+.userBig .followBtn:is(.unfollow){
+    background-color: #00eaff;
 }
 .userBig .posts{
     margin: 0 auto;
 }
+.noPosts{
+    margin: 10px auto 0;
+    width: 80%;
+    height: 40px;
+    text-align: center;
+    background-color: #1b78d8;
+    border-radius: 10px;
+    padding: 10px;
+}
 @media (max-width: 1500px) {
     .userBig{
         width: 500px;
-        margin: 10px auto 0;
+        margin: 240px auto 0;
+    }
+    .noPosts{
+        width: 500px;
     }
 }
 @media (max-width: 710px) {
     .userBig{
-        margin: 10px;
+        margin: 240px 0 10px;
+    }
+    .noPosts{
+        margin: 0;
     }
 }
+

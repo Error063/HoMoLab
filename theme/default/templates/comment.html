@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+    <link rel="stylesheet" type="text/css" href="/resources?css=hoyolab">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/styles.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/hoyolabstyles.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='icons/appicon.ico') }}">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <style>
         body{
             background-color: black;
@@ -12,16 +12,17 @@
     <meta charset="UTF-8">
 </head>
 <body>
-{% for reply in thread.getComments() %}
+{% for i in range(thread.comments | length) %}
     <div class="reply">
         <div class="user commentUser">
-            <img class="avatar" src="{{ reply['avatar'] }}"/>
+            <img class="avatar" src="{{ thread.comments[i]['avatar'] }}"/>
             <div class="userinfo">
-                <div class="nickname">{{ reply['username'] }}</div>
-                <div class="describe">{{ reply['describe'] }}</div>
+                <div class="nickname">{{ thread.comments[i]['username'] }}</div>
+                <div class="describe">{{ thread.comments[i]['describe'] }}</div>
             </div>
         </div>
-        <div class="comment">{{ reply['content'] | safe }}</div>
+        <div class="comment" id="comment-{{ i }}"></div>
+    <script>let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});quill_{{ i }}.enable(false);quill_{{ i }}.setContents({{ thread.comments[i]['content'] | safe }})</script>
     </div>
 {% endfor %}
     <div class="pageControl">

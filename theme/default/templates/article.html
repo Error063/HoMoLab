@@ -40,6 +40,13 @@
                 {% endfor %}
             </div>
         {% endif %}
+        <div class="votes">
+            <span>点赞数：</span>
+            <span class="voteNum">{{ thread.getVotes() }}</span>
+            <button class="voteBtn" onclick="upVote('{{ thread.getPostId() }}', {{ 'true' if thread.getSelfAttitude() else 'false' }})">
+                {{ '取消点赞' if thread.getSelfAttitude() else '点赞' }}
+            </button>
+        </div>
         </div>
     </div>
     {# 评论区（使用iframe嵌入） #}

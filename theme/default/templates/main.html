@@ -3,15 +3,15 @@
     <div class="rights">
     <div class="banner"></div>
     {% for i in range(articles | length) %}
-        <a onclick="hidePostCards('/article?id={{ articles[i]['post_id'] }}')" style="cursor: pointer;text-decoration: none">
-            <div class="postCard fix">
-                <div class="user">
-                    <img class="avatar" src="{{ articles[i]['authorAvatar'] }}"/>
-                    <div class="userinfo">
-                        <div class="nickname">{{ articles[i]['authorName'] }}</div>
-                        <div class="describe">{{ articles[i]['authorDescribe'] }}</div>
-                    </div>
+        <div class="postCard fix">
+            <div class="user" onclick="hidePostCards('/user?uid={{ articles[i]["uid"] }}')" style="cursor: pointer">
+                <img class="avatar" src="{{ articles[i]['authorAvatar'] }}"/>
+                <div class="userinfo">
+                    <div class="nickname">{{ articles[i]['authorName'] }}</div>
+                    <div class="describe">{{ articles[i]['authorDescribe'] }}</div>
                 </div>
+            </div>
+            <div class="articleInfo"  onclick="hidePostCards('/article?id={{ articles[i]['post_id'] }}')" style="cursor: pointer">
                 {% if articles[i]['cover'] != '' %}
                     <div class="image">
                         <div class="articleCover" style="background-image: url({{ articles[i]['cover'] }})"></div>
@@ -26,7 +26,7 @@
                     <div class="articleDescribe">{{ articles[i]['describe'] }}</div>
                 </div>
             </div>
-        </a>
+        </div>
     {% endfor %}
         <div class="postCard fix control">
         {% if select == 'search' %}
@@ -42,6 +42,24 @@
                 {% if not isLast %}
                     <p>
                         <a onclick="hidePostCards('/{{ game }}/search?content={{ search }}&page={{ page + 1 }}')">
+                            <button class="pageButton">下一页</button>
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
+        {% elif select == 'history' %}
+            <div class="mainPageControl">
+                {% if page > 1 %}
+                    <p>
+                        <a onclick="hidePostCards('/history?page={{ page - 1 }}')">
+                            <button class="pageButton">上一页</button>
+                        </a>
+                    </p>
+                {% endif %}
+                <p><h2>当前为第 {{ page }} 页</h2>
+                {% if not isLast %}
+                    <p>
+                        <a onclick="hidePostCards('/history?page={{ page + 1 }}')">
                             <button class="pageButton">下一页</button>
                         </a>
                     </p>
