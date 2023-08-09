@@ -1,6 +1,6 @@
-{% extends 'mainPage.html' %}
-{% block cards %}
-<div class="rights">
+{% extends 'base.html' %}
+{% block body %}
+<div class="userPage">
     <div class="userBig">
         <img src="{{ user.getAvatar() }}" alt="">
         <h1>{{ user.getNickname() }}</h1>

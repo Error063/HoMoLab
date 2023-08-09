@@ -30,8 +30,10 @@ function pageControl(action) {
     actionView.innerHTML = '加载中...';
     document.getElementsByClassName('main')[0].setAttribute('style','visibility:hidden;');
     if (action === 'reload'){
+        hideAndRedirect(null)
         window.location.reload();
     }else if(action === 'back'){
+        hideAndRedirect(null)
         window.history.back();
     }
     document.getElementsByClassName('main')[0].setAttribute('style','');
@@ -113,3 +115,10 @@ window.onfocus = function () {
         header.setAttribute("style", style)
     }
 }
+window.onbeforeunload = function(){
+    hideAndRedirect(null)
+}
+//
+// window.onunload = function(){
+//     console.log('页面刷新完成触发');
+// }

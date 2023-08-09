@@ -47,8 +47,36 @@
                 {{ '取消点赞' if thread.getSelfAttitude() else '点赞' }}
             </button>
         </div>
+        <div class="replyOuter">
+            <div id="releaseReply" class="releaseReply"></div>
+            <button class="replyBtn fix" onclick="releaseReply({{ thread.getPostId() }})">提交</button>
         </div>
+        <script>
+            let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'});
+            function releaseReply(post_id) {
+                let delta = quill_releaseReply.getContents();
+                let text = quill_releaseReply.getText();
+                if (text.length > 0){
+                    try {
+                        pywebview.api.releaseReply(delta, text, post_id).then(function (status) {
+                            if (status['status'] === 'ok') {
+                                alert('发送成功！');
+                                quill_releaseReply.setContents([])
+                            } else {
+                                alert(status['status']);
+                            }
+                        })
+                    } catch (e) {
+                        console.log("using pywebview js api failed!")
+                        alert('发送失败！');
+                    }
+                }else {
+                    alert('内容不能为空！')
+                }
+            }
+        </script>
     </div>
+</div>
     {# 评论区（使用iframe嵌入） #}
     <div class="comments">
         <iframe src="/comments?id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}&page=1" allowTransparency></iframe>

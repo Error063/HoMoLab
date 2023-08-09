@@ -1,57 +1,63 @@
-{% extends 'mainPage.html' %}
-{% block cards %}
-    <div class="rights">
-        <div class="setting">
-            <p><h1>设置</h1>
-            <hr/>
-            <div class="accountSettings">
-                <p>
-                <h3>账户：{{ account.getNickname() }}</h3>
-                <div class="buttons">
-                    <button onclick="accountHandler()"
-                            class="accountHandler"
-                            style="{{ 'color:red;' if account.isLogin else '' }}">
-                        {{ '退出登录' if account.isLogin else '登录' }}
-                    </button>
-                    <button onclick="refreshLoginStatus()" class="refreshLoginStatus">刷新登录状态</button>
-                </div>
+{% extends 'base.html' %}
+{% block body %}
+    <div class="setting">
+        <p><h1>设置</h1>
+        <hr/>
+        <div class="accountSettings">
+            <p>
+            <h3>账户：{{ account.getNickname() }}</h3>
+            <div class="buttons">
+                <button onclick="accountHandler()"
+                        class="accountHandler"
+                        style="{{ 'color:red;' if account.isLogin else '' }}">
+                    {{ '退出登录' if account.isLogin else '登录' }}
+                </button>
+                <button onclick="refreshLoginStatus()" class="refreshLoginStatus">刷新登录状态</button>
             </div>
-            <hr>
-            {% if isSaved %}
-                <p><strong>已保存！</strong></p>
-            {% else %}
-                <p> </p>
-            {% endif %}
-            <form action="/setting" method="post">
-                <div class="settingItem">
-                    <input type="checkbox" name="enableDebug" id="enableDebug" value="on" {{ 'checked' if config['enableDebug'] == 'on' }}>
-                    <input type="hidden" name="enableDebug" value="off">
-                    <label for="enableDebug">启用调试（下次启动时生效）</label>
-                </div>
-                <div class="settingItem">
-                    <input type="checkbox" name="colorFollowSystem" id="colorFollowSystem" value="on" {{ 'checked' if config['colorFollowSystem'] == 'on' }}>
-                    <input type="hidden" name="colorFollowSystem" value="off">
-                    <label for="colorFollowSystem">配色跟随系统</label>
-                </div>
-                <div class="settingItem">
-                    <label for="openLoad">应用启动时默认显示 </label>
-                    <select name="openLoad" id="openLoad">
-                        <option value="ys" {{ 'selected' if config['openLoad'] == 'ys'  }}>原神</option>
-                        <option value="bh3"  {{ 'selected' if config['openLoad'] == 'bh3'  }}>崩坏3</option>
-                        <option value="bh2"  {{ 'selected' if config['openLoad'] == 'bh2'  }}>崩坏学院2</option>
-                        <option value="dby"  {{ 'selected' if config['openLoad'] == 'dby'  }}>大别野</option>
-                        <option value="sr"  {{ 'selected' if config['openLoad'] == 'sr'  }}>崩坏：星穹铁道</option>
-                        <option value="zzz"  {{ 'selected' if config['openLoad'] == 'zzz'  }}>绝区零</option>
-                        <option value="wd"  {{ 'selected' if config['openLoad'] == 'wd'  }}>未定事件簿</option>
-                    </select>
-                    <label for="openLoad"> 板块</label>
-                </div>
-                <div class="commit"><input type="submit" class="pageButton" value="保存"></div>
-            </form>
-            <hr/>
-            <div class="deleteLog">
-                <button onclick="deleteLog()" class="refreshLoginStatus">清除日志</button>
+        </div>
+        <hr>
+        {% if isSaved %}
+            <p><strong>已保存！</strong></p>
+        {% else %}
+            <p> </p>
+        {% endif %}
+        <form action="/setting" method="post">
+            <div class="settingItem">
+                <input type="checkbox" name="enableDebug" id="enableDebug" value="on" {{ 'checked' if config['enableDebug'] == 'on' }}>
+                <input type="hidden" name="enableDebug" value="off">
+                <label for="enableDebug">启用调试（下次启动时生效）</label>
             </div>
+            <div class="settingItem">
+                <input type="checkbox" name="colorFollowSystem" id="colorFollowSystem" value="on" {{ 'checked' if config['colorFollowSystem'] == 'on' }}>
+                <input type="hidden" name="colorFollowSystem" value="off">
+                <label for="colorFollowSystem">工具栏配色跟随系统</label>
+            </div>
+            <div class="settingItem">
+                <label for="openLoad">应用启动时默认显示 </label>
+                <select name="openLoad" id="openLoad">
+                    <option value="ys" {{ 'selected' if config['openLoad'] == 'ys'  }}>原神</option>
+                    <option value="bh3"  {{ 'selected' if config['openLoad'] == 'bh3'  }}>崩坏3</option>
+                    <option value="bh2"  {{ 'selected' if config['openLoad'] == 'bh2'  }}>崩坏学院2</option>
+                    <option value="dby"  {{ 'selected' if config['openLoad'] == 'dby'  }}>大别野</option>
+                    <option value="sr"  {{ 'selected' if config['openLoad'] == 'sr'  }}>崩坏：星穹铁道</option>
+                    <option value="zzz"  {{ 'selected' if config['openLoad'] == 'zzz'  }}>绝区零</option>
+                    <option value="wd"  {{ 'selected' if config['openLoad'] == 'wd'  }}>未定事件簿</option>
+                </select>
+                <label for="openLoad"> 板块</label>
+            </div>
+            <div class="settingItem">
+                <label for="colorMode">颜色模式</label>
+                <select name="colorMode" id="colorMode">
+                    <option value="dark" {{ 'selected' if config['colorMode'] == 'dark'  }}>暗色</option>
+                    <option value="light"  {{ 'selected' if config['colorMode'] == 'light'  }}>浅色</option>
+                    <option value="auto"  {{ 'selected' if config['colorMode'] == 'auto'  }}>自动</option>
+                </select>
+            </div>
+            <div class="commit fix"><input type="submit" class="saveBtn" value="保存"></div>
+        </form>
+        <hr/>
+        <div class="deleteLog">
+            <button onclick="deleteLog()" class="refreshLoginStatus">清除日志</button>
         </div>
     </div>
 {% endblock %}

@@ -65,6 +65,24 @@
                     </p>
                 {% endif %}
             </div>
+        {% elif select in ['announce', 'activity', 'information'] %}
+            <div class="mainPageControl">
+                {% if page > 1 %}
+                    <p>
+                        <a onclick="hidePostCards('/{{ game }}/news?type={{ select }}&page={{ page - 1 }}')">
+                            <button class="pageButton">上一页</button>
+                        </a>
+                    </p>
+                {% endif %}
+                <p><h2>当前为第 {{ page }} 页</h2>
+                {% if not isLast %}
+                    <p>
+                        <a onclick="hidePostCards('/{{ game }}/news?type={{ select }}&page={{ page + 1 }}')">
+                            <button class="pageButton">下一页</button>
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
         {% else %}
             <div class="mainPageControl">
                 {% if page > 1 %}

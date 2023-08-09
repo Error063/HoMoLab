@@ -46,7 +46,7 @@ try:
     with open(config_dir) as f:
         config = json.load(f)
 except FileNotFoundError:
-    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on"}
+    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto"}
     logging.warning('configs load failed, creating...')
     if not os.path.exists(config_dir + '/..'):
         os.mkdir(config_dir + '/..')
@@ -143,11 +143,20 @@ def favicon():
 @LoadPage
 def personal():
     colorSet = systemColorSet()
-    css = """
-    .headers { 
-        background-color: #""" + colorSet[0] + """;
-    }
-    """
+    css = """.headers { 
+    background-color: #""" + colorSet[0] + """;
+}
+"""
+    if (not bool(colorSet[1]) and config['colorMode'] == 'auto') or config['colorMode'] == 'dark':
+        if config['colorMode'] == 'auto':
+            css += '@media (prefers-color-scheme: dark) {\n'
+        try:
+            with open(f'./theme/{theme}/static/css/darkmode.css') as f:
+                css += f.read()
+        except FileNotFoundError:
+            css += ''
+        if config['colorMode'] == 'auto':
+            css += '\n}'
     resp = make_response(css)
     resp.content_type = "text/css"
     return resp
@@ -338,6 +347,14 @@ class Apis:
         except Exception as e:
             logging.error(f'failed to delete log because {e}')
             return {'status': 'failed'}
+
+    def releaseReply(self, delta, text, post_id, reply_id=''):
+        result = libhoyolab.Actions().releaseReply(delta, text, post_id, reply_id)
+        if result[0] == 0:
+            return {'status': 'ok'}
+        else:
+            print(result)
+            return {'status': f'{result[-1]}'}
 
     def getColor(self):
         logging.info("=" * 15)

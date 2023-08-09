@@ -1,0 +1,46 @@
+.main *, .replies *{
+    color: #f3f3f3;
+}
+body{
+    background-color: #000;
+}
+.menu{
+    background-color: #006173;
+}
+input[type="text"]{
+    background-color: #cacaca;
+    color: black;
+}
+input[type="submit"]{
+    background-color: #606060;
+}
+.area{
+    background-color: #0090cf;
+}
+iframe{
+    background-color: black;
+}
+button{
+    background-color: #606060;
+}
+span, p{
+    mix-blend-mode: difference;
+}
+.card-title, .link-button span{
+    color: #000;
+}
+.setting select{
+    background-color: #696969;
+}
+.tag{
+    background-color: #3f3f3f;
+}
+.setting{
+    background-color: #0068be;
+}
+.userBig, .noPosts{
+    background-color: #2c6ab0;
+}
+.postCard, .article, .reply, .pageControl, .comments{
+    background-color: #2a2a2a;
+}

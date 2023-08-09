@@ -108,7 +108,8 @@ def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, 
         "x-rpc-device_name": "vivo s7",
         "x-rpc-device_model": "vivo-s7",
         "x-rpc-sys_version": "12",
-        "x-rpc-channel": "bll8iq97cem8",
+        "x-rpc-channel": "miyousheluodi",
+        "x-rpc-verify_key": "bll8iq97cem8",
         "Referer": Referer,
     }
     return headers
@@ -285,7 +286,6 @@ class Page:
         self.articles = articleSet(result['data']['recommended_posts' if pageType == 'recommend' else 'list'])
 
 
-
 class Comments:
     def __init__(self, post_id, gid, page=1, max_size=20, rank_by_hot=True, orderby=1):
         self.page = int(page)
@@ -359,13 +359,15 @@ def login():
     if "成功" in data["data"]["msg"]:
         stuid = data["data"]["cookie_info"]["account_id"]
         resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
-        # print(response.text)
+        print(resp.text)
         data = json.loads(resp.text.encode('utf-8'))
         stoken = data["data"]["list"][0]["token"]
         account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
         logging.debug("tokens: " + str(account))
         with open(account_dir, mode='w') as f:
             json.dump(account, f)
+    else:
+        print(f'failed, {data}')
 
 
 def logout():
@@ -421,13 +423,13 @@ class User:
 
 class Actions:
     def follow(self, uid):
-        header = headerGenerate(app='web', client='4')
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
 
     def unfollow(self, uid):
-        header = headerGenerate(app='web', client='4')
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
@@ -438,18 +440,37 @@ class Actions:
         logging.info(resp)
         return resp['retcode'], resp['message']
 
+    def collectPost(self, post_id, isCancel):
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
+        resp = connectApi(urls.collectPost, method='post', headers=header, data={"post_id": post_id, "is_cancel": isCancel}).json()
+        logging.info(resp)
+        return resp['retcode'], resp['message']
+
     def getHistory(self, offset=''):
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.history.format(str(offset)), headers=header).json()['data']
         return articleSet(resp['list'], method='history'), resp['is_last']
 
+    def releaseReply(self, delta, text, post_id, reply_id=''):
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
+        delta = json.dumps(delta['ops'], ensure_ascii=False)
+        reply_contents = {
+            "content": text,
+            "post_id": str(post_id),
+            "reply_id": str(reply_id),
+            "structured_content": delta
+        }
+        resp = connectApi(urls.releaseReply, method='post', data=reply_contents, headers=header).json()
+        return resp['retcode'], resp['message']
+
+
 
 def debug(path='./debugs/'):
-    url = urls.history.format(0)
-    body = {"is_cancel": True, "post_id": "42109377"}
+    url = urls.collectPost
+    body = {"is_cancel": False, "post_id": "42109377"}
     header = headerGenerate()
     pprint.pprint(header)
-    resp = session.get(url, headers=header)
+    resp = connectApi(apiUrl=url, method='post', data=body, headers=header)
     contents = resp.text
     savedAt = f'{path}/debug-{int(time.time())}.json'
     with open(savedAt, mode='w') as f:

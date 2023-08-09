@@ -1,9 +1,6 @@
 *{
     direction: ltr;
 }
-/*a{*/
-/*    color: #000;*/
-/*}*/
 /* clearfix */
 .fix::after{
     content: "";
@@ -17,15 +14,11 @@ body{
     margin: 0;
     max-width: 100%;
     min-width: 520px;
+    /*background-color: black;*/
     /*overflow: hidden;*/
 }
 body::-webkit-scrollbar {
   display: none;
-}
-@media screen and (prefers-color-scheme: dark) {
-    body{
-        background: #494949;
-    }
 }
 .headers{
     position: fixed;
@@ -231,8 +224,10 @@ body::-webkit-scrollbar {
     margin: 14px;
 }
 .setting{
-    margin-top: 10px;
-    margin-right: 12%;
+    /*margin-top: 10px;*/
+    /*margin-right: 12%;*/
+    margin: 100px auto 0;
+    width: 75%;
     background-color: #008cff;
     border-radius: 10px;
     padding: 2%;
@@ -317,7 +312,7 @@ body::-webkit-scrollbar {
     }
     .setting{
         float: unset;
-        margin: 135px auto 12%;
+        margin: 100px auto 5%;
     }
 }
 @media (max-width: 710px) {
@@ -426,7 +421,7 @@ body::-webkit-scrollbar {
 iframe{
     width: 100%;
     height: 100%;
-    border: darkgray 1px solid;
+    border: none;
     border-radius: 10px;
     background-color: darkgray;
 }
@@ -535,6 +530,13 @@ iframe{
     height: 25px;
     width: 75px;
 }
+.voteBtn{
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    height: 25px;
+    width: 75px;
+}
 .errorPage{
     margin: 40px auto;
     height: 500px;
@@ -564,7 +566,22 @@ iframe{
 .accountSettings *{
     margin: 10px;
 }
-.setting button{
+.setting button, .replyBtn{
+    width: 150px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    float: left;
+    margin: 10px;
+}
+.setting select {
+    margin: 7px;
+    height: 22px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+}
+.saveBtn {
     width: 150px;
     height: 40px;
     border: none;
@@ -579,12 +596,15 @@ iframe{
 .accountSettings .buttons{
     height: 50px;
 }
+.userPage{
+    padding: 4%;
+}
 .userBig{
     width: 80%;
     height: 150px;
     border-radius: 10px;
-    background-color: #4d96ea;
-    margin: 200px auto 0;
+    background-color: #1b78d8;
+    margin: 100px auto 0;
     padding: 20px;
 }
 .userBig img{
@@ -611,6 +631,15 @@ iframe{
 .userBig .posts{
     margin: 0 auto;
 }
+.replyOuter{
+    margin: 20px auto 0;
+    height: 433px;
+    width: 80%;
+}
+.releaseReply{
+    height: 300px;
+    cursor: none;
+}
 .noPosts{
     margin: 10px auto 0;
     width: 80%;
@@ -623,7 +652,7 @@ iframe{
 @media (max-width: 1500px) {
     .userBig{
         width: 500px;
-        margin: 240px auto 0;
+        margin: 100px auto 0;
     }
     .noPosts{
         width: 500px;
@@ -631,10 +660,9 @@ iframe{
 }
 @media (max-width: 710px) {
     .userBig{
-        margin: 240px 0 10px;
+        margin: 100px 0 10px;
     }
     .noPosts{
         margin: 0;
     }
 }
-
