@@ -1,12 +1,19 @@
+"""
+将文章的部分内容（表情包、指向米游社的部分链接）进行替换
+"""
 import json
-import random
 import re
-import time
 
 from libhoyolab import replace_regex
 
 
 def replaceAllFromDelta(contents: list | str, emotionDict: dict):
+    """
+    将表情包文本进行转义
+    :param contents: 结构化文章内容
+    :param emotionDict: 表情包集合
+    :return:
+    """
     if type(contents) is str:
         contents = json.loads(contents)
     new_contents = list()
@@ -25,6 +32,12 @@ def replaceAllFromDelta(contents: list | str, emotionDict: dict):
 
 
 def replaceAll(contents: str, emotionDict: dict):
+    """
+    将文章的部分内容（表情包、指向米游社的部分链接）进行替换
+    :param contents: 文章内容
+    :param emotionDict: 表情包集合
+    :return:
+    """
     contents = re.sub(replace_regex.emotion,
                       lambda m: f'<img class="emoticon-image emotionIcon" src="{emotionDict[m.group(1)]}">',
                       contents)

@@ -104,7 +104,7 @@ body::-webkit-scrollbar {
 .main{
     margin-top: 30px;
 }
-/* main.html */
+/* posts.html */
 /* menu */
 .menu{
     position: fixed;
@@ -489,6 +489,9 @@ iframe{
     border-radius: 10px;
     padding: 3%;
 }
+.mainReply{
+    background-color: #949494;
+}
 .reply .comment{
     line-height: 24px;
     font-size: 16px;
@@ -522,7 +525,6 @@ iframe{
     margin-left: 10px;
     margin-right: 10px;
 }
-
 .pageButton{
     color: #000;
     border: none;
@@ -530,12 +532,8 @@ iframe{
     height: 25px;
     width: 75px;
 }
-.voteBtn{
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    height: 25px;
-    width: 75px;
+.showMore{
+    float: right;
 }
 .errorPage{
     margin: 40px auto;
@@ -545,6 +543,9 @@ iframe{
     border-radius: 10px;
     background-color: red;
     padding: 10%;
+}
+#video{
+    margin: 0 auto;
 }
 .mhy-vod:before{
     content: "[视频暂不支持播放]";
@@ -571,8 +572,10 @@ iframe{
     height: 40px;
     border: none;
     border-radius: 10px;
-    float: left;
     margin: 10px;
+}
+.replyBtn{
+    float: right;
 }
 .setting select {
     margin: 7px;
@@ -580,6 +583,7 @@ iframe{
     border: none;
     border-radius: 5px;
     background-color: white;
+    min-width: 100px;
 }
 .saveBtn {
     width: 150px;
@@ -631,8 +635,28 @@ iframe{
 .userBig .posts{
     margin: 0 auto;
 }
+.stat{
+    margin: 0 auto;
+    text-align: center;
+    height: 80px;
+    width: 30%;
+    min-width: 250px;
+}
+.votes, .collects{
+    float: left;
+    margin: 10px;
+
+}
+.voteBtn, .collectsBtn{
+    margin: 5px;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    height: 25px;
+    width: 75px;
+}
 .replyOuter{
-    margin: 20px auto 0;
+    margin: 50px auto 0;
     height: 433px;
     width: 80%;
 }

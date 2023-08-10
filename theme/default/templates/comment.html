@@ -4,35 +4,68 @@
     <link rel="stylesheet" type="text/css" href="/resources?css=hoyolab">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/styles.css') }}">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        function upVoteReply(reply_id, post_id, isCancel, i) {
+            window.parent.pywebview.api.upVoteReply(reply_id, post_id, isCancel).then(function (status) {
+                if (status['status'] === 'ok'){
+                    let btn = document.getElementsByClassName("voteReplyBtn")[i]
+                    btn.textContent = isCancel?'点赞':'取消点赞'
+                    btn.setAttribute('onclick', `upVoteReply('${reply_id}','${post_id}', ${(!isCancel).toString()}, ${i})`)
+                    let voteNum = document.getElementsByClassName('voteReplyNum')[i]
+                    voteNum.textContent = isCancel?(Number(voteNum.textContent) - 1).toString():(Number(voteNum.textContent) + 1).toString()
+                }
+                console.info(status['status'])
+            })
+        }
+        function hideAndRedirect(url) {
+            let replies = document.getElementsByClassName('replies')[0]
+            replies.setAttribute('style','visibility: hidden;')
+            window.location.href = url
+        }
+    </script>
     <meta charset="UTF-8">
 </head>
 <body>
 <div class="replies">
-{% for i in range(thread.comments | length) %}
-    <div class="reply">
-        <div class="user commentUser">
-            <img class="avatar" src="{{ thread.comments[i]['avatar'] }}"/>
-            <div class="userinfo">
-                <div class="nickname">{{ thread.comments[i]['username'] }}</div>
-                <div class="describe">{{ thread.comments[i]['describe'] }}</div>
+{% for i in range(replies.comments | length) %}
+        <div class="reply">
+            <div class="user commentUser">
+                <img class="avatar" src="{{ replies.comments[i]['avatar'] }}"/>
+                <div class="userinfo">
+                    <div class="nickname">{{ replies.comments[i]['username'] }}</div>
+                    <div class="describe">{{ replies.comments[i]['describe'] }}</div>
+                </div>
             </div>
+            <div class="comment" id="comment-{{ i }}"></div>
+            <script>
+                let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});
+                quill_{{ i }}.enable(false);
+                quill_{{ i }}.setContents({{ replies.comments[i]['content'] | safe }})
+            </script>
+            <span>评论数：</span>
+            <span>{{ replies.comments[i]['sub_num'] }}</span>
+            <span>点赞数：</span>
+            <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
+            {% if account.isLogin %}
+                <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
+            {% endif %}
+            {% if replies.comments[i]['sub_num'] > 0 %}
+                <button class="showMore pageButton" onclick="hideAndRedirect('/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ replies.comments[i]['reply_id'] }}&floor_id={{ replies.comments[i]['floor_id'] }}')">查看评论</button>
+            {% endif %}
         </div>
-        <div class="comment" id="comment-{{ i }}"></div>
-    <script>let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});quill_{{ i }}.enable(false);quill_{{ i }}.setContents({{ thread.comments[i]['content'] | safe }})</script>
-    </div>
 {% endfor %}
     <div class="pageControl">
-{% if thread.isLastFlag and thread.page == 1 %}
+{% if replies.isLastFlag and replies.page == 1 %}
     <span>没有更多了</span>
 {% else %}
-    <span>当前为第 {{ thread.page }} 页</span>
-        {% if thread.page > 1 %}
-            <a href="/comments?id={{ thread.post_id }}&gid={{ thread.gid }}&page={{ thread.page - 1 }}">
+    <span>当前为第 {{ replies.page }} 页</span>
+        {% if replies.page > 1 %}
+            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&page={{ replies.page - 1 }}">
                 <button class="pageButton">上一页</button>
             </a>
         {% endif %}
-        {% if not thread.isLastFlag %}
-            <a href="/comments?id={{ thread.post_id }}&gid={{ thread.gid }}&page={{ thread.page + 1 }}">
+        {% if not replies.isLastFlag %}
+            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&page={{ replies.page + 1 }}">
                 <button class="pageButton">下一页</button>
             </a>
         {% endif %}

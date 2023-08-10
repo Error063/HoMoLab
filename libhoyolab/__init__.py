@@ -1,4 +1,3 @@
-# encoding:utf-8
 import hashlib
 import os.path
 import pprint
@@ -50,20 +49,31 @@ gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
 session = requests.session()
 
 
-def md5(text):
-    '''md5加密'''
+def md5(text) -> str:
+    """
+    md5加密
+    :param text: 需要加密的文本
+    :return:
+    """
     md5 = hashlib.md5()
     md5.update(text.encode())
     return md5.hexdigest()
 
 
-def randomStr(n):
-    '''生成指定位数的随机数'''
+def randomStr(n) -> str:
+    """
+    生成指定位数的随机字符串
+    :param n: 指定位数
+    :return:
+    """
     return (''.join(random.sample(string.digits + string.ascii_letters, n))).lower()
 
 
-def DS1():
-    '''生成米游社DS'''
+def DS1() -> str:
+    """
+    生成米游社DS1
+    :return:
+    """
     n = Salt_LK2
     i = str(int(time.time()))
     r = randomStr(6)
@@ -71,10 +81,20 @@ def DS1():
     return "{},{},{}".format(i, r, c)
 
 
-def DS2(query='', body='', salt='4x'):
+def DS2(query='', body='', salt='4x') -> str:
+    '''
+    生成米游社DS2
+    :param query: 查询参数（当算法为Ds2，请求为get时使用）
+    :param body: post内容（当算法为Ds2，请求为post时使用）
+    :param salt: 指定算法所需的salt（当算法为Ds2时使用）
+    :return: str
+    '''
     salt = Salt_4X if salt.lower() == '4x' else Salt_6X
     new_body = dict()
-    if not body:
+    t = int(time.time())
+    r = random.randint(100001, 200000)
+    main = ''
+    if body:
         if type(body) is str:
             body = json.loads(body)
             for key in sorted(json.loads(body)):
@@ -84,17 +104,31 @@ def DS2(query='', body='', salt='4x'):
             for key in sorted(body):
                 new_body[key] = body[key]
             body = json.dumps(new_body)
-    if not query:
+            main = f"salt={salt}&t={t}&r={r}&b={body}"
+    elif query:
         query = '&'.join(sorted(query.split('&')))
-    t = int(time.time())
-    r = random.randint(100001, 200000)
-    main = f"salt={salt}&t={t}&r={r}&b={body}"  # &q={query}
+        main = f"salt={salt}&t={t}&r={r}&q={query}"
+    else:
+        main = f"salt={salt}&t={t}&r={r}"
     ds = md5(main)
     return f"{t},{r},{ds}"
 
 
 def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, query='', body: str | dict = '{}',
-                   salt='4x', Referer="https://www.miyoushe.com/"):
+                   salt='4x', Referer="https://www.miyoushe.com/") -> dict:
+    """
+    生成请求头
+    :param app: ‘app’ 或 ‘web’
+    :param client: 1：iOS 2：Android 4：网页 5：其他
+    :param withCookie: 是否携带cookie信息
+    :param withDs: 是否包含Ds（已弃用）
+    :param agro: Ds算法（Ds1或Ds2）
+    :param query: 查询参数（当算法为Ds2，请求为get时使用）
+    :param body: post内容（当算法为Ds2，请求为post时使用）
+    :param salt: 指定算法所需的salt（当算法为Ds2时使用）
+    :param Referer: 请求头的Referer字段
+    :return: dict
+    """
     headers = {
         "Cookie": f'login_ticket={login_ticket};stuid={stuid};stoken={stoken}' if withCookie and account[
             'isLogin'] else '',
@@ -115,7 +149,12 @@ def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, 
     return headers
 
 
-def getEmotions(gid='2'):
+def getEmotions(gid: str | int='2') -> dict:
+    """
+    获取表情包所对应的图片路径
+    :param gid:
+    :return: dict
+    """
     logging.info('emotion lib is running')
     emotionDict = dict()
     req = session.get(urls.emoticon_set.format(str(gid)), verify=False)
@@ -128,7 +167,13 @@ def getEmotions(gid='2'):
     return emotionDict
 
 
-def articleSet(raw_articles: list, method: str='normal') -> list:
+def articleSet(raw_articles: list, method: str = 'normal') -> list:
+    """
+    生成简化后的文章流
+    :param raw_articles: 原来的文章流
+    :param method: 文章流类型
+    :return:
+    """
     articles = list()
     for articleInfo in raw_articles:
         article = dict()
@@ -158,20 +203,28 @@ def articleSet(raw_articles: list, method: str='normal') -> list:
 
 
 def connectApi(apiUrl: str, method='get', data=None, headers=None) -> requests.Response:
+    """
+    api连接
+    :param apiUrl: url地址
+    :param method: 连接方式（get 或 post）
+    :param data: post内容
+    :param headers: 请求头
+    :return:
+    """
     if headers is None:
         headers = headerGenerate(app='web')
     if data is None:
         data = {}
-    count = 3
+    count = 3  # 尝试三次
     err = None
     resp = None
     while count != 0:
         try:
             match method.lower():
                 case 'get':
-                    resp = session.get(url=apiUrl, headers=headers, verify=False, timeout=3)
+                    resp = session.get(url=apiUrl, headers=headers, verify=False, timeout=5)
                 case 'post':
-                    resp = session.post(url=apiUrl, headers=headers, json=data, verify=False, timeout=3)
+                    resp = session.post(url=apiUrl, headers=headers, json=data, verify=False, timeout=5)
                 case _:
                     raise Exception('method not matched!')
             break
@@ -184,76 +237,127 @@ def connectApi(apiUrl: str, method='get', data=None, headers=None) -> requests.R
     return resp
 
 
+def login():
+    """
+    用户登录操作
+    :return:
+    """
+    global cookie, login_ticket, stuid, stoken, account
+    with open(account_dir) as f:
+        login_ticket = json.load(f)['login_ticket']
+    resp = session.get(urls.Cookie_url.format(login_ticket))
+    data = json.loads(resp.text.encode('utf-8'))
+    logging.debug(str(data))
+    if "成功" in data["data"]["msg"]:
+        stuid = data["data"]["cookie_info"]["account_id"]
+        resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
+        data = json.loads(resp.text.encode('utf-8'))
+        stoken = data["data"]["list"][0]["token"]
+        account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
+        logging.debug("tokens: " + str(account))
+        with open(account_dir, mode='w') as f:
+            json.dump(account, f)
+        return 'ok'
+    else:
+        logging.error(f'failed, {data}')
+        return 'failed'
+
+
+def logout():
+    """
+    用户退出登录操作
+    :return:
+    """
+    global account, cookie, login_ticket, stuid, stoken
+    os.unlink(account_dir)
+    cookie = ''
+    login_ticket = ''
+    stuid = ''
+    stoken = ''
+    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
+    with open(account_dir, mode='w') as f:
+        json.dump(account, f)
+
+
 class Article:
+    """
+    文章类：从服务器索取文章信息
+    """
+
     def __init__(self, post_id):
+        """
+        初始化文章类
+        :param post_id: 文章id
+        """
         logging.info(f'getting article from {post_id}')
         logging.info('accessing ' + urls.getPostFull.format(str(post_id)))
-        count = 3
-        while count != 0:
-            try:
+        headers = headerGenerate(app='web')
+        resp = connectApi(urls.getPostFull.format(str(post_id)), headers=headers)
+        self.result = resp.json()
 
-                req = session.get(urls.getPostFull.format(str(post_id)), headers=headerGenerate(app='web'),
-                                  verify=False, timeout=3)
-                break
-            except:
-
-                count -= 1
-                continue
-        if count == 0:
-            raise Exception('Connection Failed!')
-        self.result = json.loads(req.content.decode("utf8"))
-
-    def getRaw(self):
-        return self.result
-
-    def getPostId(self):
-        return self.result["data"]['post']['post']['post_id']
-
-    def getGameId(self):
-        return str(self.result["data"]['post']['post']['game_id'])
-
-    def getContent(self):
+    def getContent(self) -> str:
+        """
+        获取文章内容(基于HTML)
+        :return:
+        """
         return threadRender.replaceAll(self.result["data"]['post']['post']['content'],
-                                       emotionDict=getEmotions(gid=self.getGameId()))
+                                       emotionDict=getEmotions(gid=self.result["data"]['post']['post']['game_id']))
 
-    def getRenderType(self):
-        return self.result["data"]['post']['post']['view_type']
-
-    def getStructuredContent(self, rendered=True):
+    def getStructuredContent(self) -> str:
+        """
+        获取结构化的文章内容（基于Quill的Delta）
+        :return:
+        """
         structured = self.result["data"]["post"]["post"]["structured_content"]
-        if len(structured) > 0:
-            if rendered:
-                return threadRender.render(json.loads(structured), emotionDict=getEmotions(gid=self.getGameId()))
-            else:
-                return json.loads(self.result["data"]["post"]["post"]["structured_content"])
-        else:
-            return ''
+        return threadRender.replaceAllFromDelta(structured, emotionDict=getEmotions(gid=self.result["data"]['post']['post']['game_id']))
 
-    def getTitle(self):
-        return self.result['data']['post']['post']['subject']
+    def getVideo(self) -> str:
+        """
+        获取视频及其不同的清晰度
+        :return:
+        """
+        return json.dumps(self.result["data"]["post"]["vod_list"])
 
-    def getAuthor(self):
-        return self.result['data']['post']['user']['nickname']
-
-    def getSelfAttitude(self):
+    def getSelfAttitude(self) -> bool:
+        """
+        获取用户是否给文章点赞
+        :return:
+        """
         return bool(self.result['data']['post']['self_operation']['attitude'])
 
-    def getVotes(self):
-        return self.result['data']['post']['stat']['like_num']
+    def getSelfCollect(self) -> bool:
+        """
+        获取用户是否给文章收藏
+        :return:
+        """
+        return bool(self.result['data']['post']['self_operation']['is_collected'])
 
-    def getAuthorAvatar(self):
-        return self.result['data']['post']['user']['avatar_url']
+    def getVotes(self) -> int:
+        """
+        获取文章的点赞数
+        :return:
+        """
+        return int(self.result['data']['post']['stat']['like_num'])
 
-    def getAuthorUid(self):
-        return int(self.result['data']['post']['user']['uid'])
+    def getCollects(self) -> int:
+        """
+        获取文章的收藏数
+        :return:
+        """
+        return int(self.result['data']['post']['stat']['bookmark_num'])
 
-    def getAuthorDescribe(self):
+    def getAuthorDescribe(self) -> str:
+        """
+        获取作者简介
+        :return:
+        """
         return f"{self.result['data']['post']['user']['certification']['label'] if len(self.result['data']['post']['user']['certification']['label']) > 0 else self.result['data']['post']['user']['introduce']}"
 
-    def getImages(self):
-        return self.result['data']['post']['post']['images']
-
-    def getTags(self):
+    def getTags(self) -> list:
+        """
+        获取文章标签
+        :return:
+        """
         tags = list()
         for tag in self.result['data']['post']['topics']:
             tags.append({
@@ -265,12 +369,23 @@ class Article:
 
 
 class Page:
+    """
+    文章流类
+    """
+
     def __init__(self, gid, pageType, page=1, pageSize=50):
+        """
+        初始化文章流类
+        :param gid: 论坛板块id
+        :param pageType: 文章流类型
+        :param page: 页数
+        :param pageSize: 单次获取的最大的文章数量
+        """
         self.page = page
         logging.info('getting page')
         if pageType == 'recommend':
             apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
-        elif pageType == 'feeds':
+        elif pageType == 'feeds':  # 获取发现页时有问题
             apiUrl = urls.feedPosts.format(str(gid), str(page))
         else:
             if pageType not in newsType:
@@ -278,7 +393,7 @@ class Page:
             else:
                 typeNum = newsType[pageType]
             apiUrl = urls.getNewsList.format(str(gid), str(typeNum), str(pageSize),
-                                             str((int(page) - 1) * 50 + 1))
+                                             str(abs((int(page) - 1) * int(pageSize))))
         logging.info('accessing ' + apiUrl)
         req = connectApi(apiUrl)
         logging.debug(req.text)
@@ -287,19 +402,35 @@ class Page:
 
 
 class Comments:
-    def __init__(self, post_id, gid, page=1, max_size=20, rank_by_hot=True, orderby=1):
+    """
+    评论流类
+    """
+
+    def __init__(self, post_id, gid, page=1, max_size=20, rank_by_hot=True, orderby=1, only_master=False):
+        """
+        初始化评论流类
+        :param post_id: 文章id
+        :param gid: 游戏id
+        :param page: 页数
+        :param max_size: 单次获取的最大的评论数量
+        :param rank_by_hot: 是否按热度排序
+        :param orderby: 排序方式（1.最早，2.最新）
+        :param only_master: 仅楼主
+        """
         self.page = int(page)
         self.post_id = post_id
         self.gid = str(gid)
-        start = (int(page) - 1) * int(max_size) + 1
+        start = abs((int(page) - 1) * int(max_size))
         logging.info(f"getting comments from {post_id}, start from {start}")
         emotionDict = getEmotions(gid)
         apiUrl = urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
-                                            str(start), str(orderby))
+                                            str(start), str(orderby), str(only_master).lower())
         logging.info("accessing " + apiUrl)
-        req = connectApi(apiUrl)
-        result = req.json()
-
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
+        pprint.pprint(header)
+        resp = connectApi(apiUrl, headers=header)
+        result = resp.json()
+        # pprint.pprint(result)
         self.rank_by_hot = rank_by_hot
         self.comments = []
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
@@ -309,6 +440,7 @@ class Comments:
         for i in range(len(comments_raw)):
             reply = comments_raw[i]
             tmp = {
+                'reply_id': reply['reply']['reply_id'],
                 'floor_id': reply['reply']['floor_id'],
                 'post_id': reply['reply']['post_id'],
                 'content': threadRender.replaceAllFromDelta(reply['reply']['struct_content'], emotionDict),
@@ -316,7 +448,10 @@ class Comments:
                 'uid': int(reply['user']['uid']),
                 'avatar': reply['user']['avatar_url'],
                 'describe': reply['user']['certification']['label'] if len(
-                    reply['user']['certification']['label']) > 0 else reply['user']['introduce']
+                    reply['user']['certification']['label']) > 0 else reply['user']['introduce'],
+                'like_num': reply['stat']['like_num'],
+                'sub_num': int(reply['stat']['sub_num']),
+                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(reply['self_operation']['attitude'])
             }
             if rank_by_hot:
                 if reply['reply']:
@@ -330,12 +465,89 @@ class Comments:
                     self.comments.append(reply)
 
 
-    # def getSubComments(self):
-    #     return
+class RootComment:
+    """
+    评论类
+    """
+    def __init__(self, post_id, reply_id):
+        """
+        初始化评论类
+        :param post_id: 文章id
+        :param reply_id: 评论id
+        """
+        self.post_id = post_id
+        self.reply_id = reply_id
+        resp = connectApi(urls.getRootReplyInfo.format(str(post_id), str(reply_id))).json()['data']
+        emotionDict = getEmotions(resp['reply']['reply']['game_id'])
+        self.comment = {
+                'reply_id': resp['reply']['reply']['reply_id'],
+                'floor_id': resp['reply']['reply']['floor_id'],
+                'post_id': resp['reply']['reply']['post_id'],
+                'content': threadRender.replaceAllFromDelta(resp['reply']['reply']['struct_content'], emotionDict),
+                'username': resp['reply']['user']['nickname'],
+                'uid': int(resp['reply']['user']['uid']),
+                'avatar': resp['reply']['user']['avatar_url'],
+                'describe': resp['reply']['user']['certification']['label'] if len(
+                    resp['reply']['user']['certification']['label']) > 0 else resp['reply']['user']['introduce'],
+                'like_num': resp['reply']['stat']['like_num'],
+                'upvoted': bool(resp['reply']['self_operation']['reply_vote_attitude']) and bool(resp['reply']['self_operation']['attitude'])
+            }
+
+
+class SubComments:
+    """
+    楼中楼类
+    """
+    def __init__(self, post_id, floor_id, last_id=0, gid=2, max_size=20):
+        """
+        初始化楼中楼类
+        :param post_id: 文章id
+        :param floor_id: 评论楼层id
+        :param last_id: 最后的评论id
+        :param gid: 游戏id（仅限获取表情图片）
+        :param max_size: 单次获取的最大的评论数量
+        """
+        self.post_id = post_id
+        self.floor_id = floor_id
+        self.prev_id = last_id
+        self.gid = gid
+        logging.info(f"getting sub comments from {floor_id} in {post_id}, start from id {last_id}")
+        emotionDict = getEmotions(gid)
+        apiUrl = urls.getSubReplies.format(str(post_id), str(floor_id), str(last_id), str(max_size))
+        header = headerGenerate()
+        resp = connectApi(apiUrl=apiUrl, headers=header).json()
+        self.comments = list()
+        self.isLastFlag = resp['data']['is_last']
+        self.last_id = resp['data']['last_id']
+        comments_raw = resp['data']['list']
+        for reply in comments_raw:
+            self.comments.append({
+                'reply_id': reply['reply']['reply_id'],
+                'post_id': reply['reply']['post_id'],
+                'content': threadRender.replaceAllFromDelta(reply['reply']['struct_content'], emotionDict),
+                'username': reply['user']['nickname'],
+                'uid': int(reply['user']['uid']),
+                'avatar': reply['user']['avatar_url'],
+                'describe': reply['user']['certification']['label'] if len(
+                    reply['user']['certification']['label']) > 0 else reply['user']['introduce'],
+                'like_num': reply['stat']['like_num'],
+                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(reply['self_operation']['attitude'])
+            })
 
 
 class Search:
+    """
+    搜索类
+    """
+
     def __init__(self, keyWords, gid, page=1, max_size=20):
+        """
+        初始化搜索类
+        :param keyWords: 关键字
+        :param gid: 游戏id
+        :param page: 页数
+        :param max_size: 单次获取的最大的文章数量
+        """
         self.gid = gid
         start = int(page)
         logging.info(f'searching {keyWords}, from {start}')
@@ -345,45 +557,16 @@ class Search:
         self.isLastFlag = result['data']['is_last']
         self.articles = articleSet(result['data']['posts'])
 
-    def getArticles(self):
-        return self.articles
-
-
-def login():
-    global cookie, login_ticket, stuid, stoken, account
-    with open(account_dir) as f:
-        login_ticket = json.load(f)['login_ticket']
-    resp = session.get(url=urls.Cookie_url.format(login_ticket))
-    data = json.loads(resp.text.encode('utf-8'))
-    logging.debug(str(data))
-    if "成功" in data["data"]["msg"]:
-        stuid = data["data"]["cookie_info"]["account_id"]
-        resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
-        print(resp.text)
-        data = json.loads(resp.text.encode('utf-8'))
-        stoken = data["data"]["list"][0]["token"]
-        account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
-        logging.debug("tokens: " + str(account))
-        with open(account_dir, mode='w') as f:
-            json.dump(account, f)
-    else:
-        print(f'failed, {data}')
-
-
-def logout():
-    global account, cookie, login_ticket, stuid, stoken
-    os.unlink(account_dir)
-    cookie = ''
-    login_ticket = ''
-    stuid = ''
-    stoken = ''
-    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
-    with open(account_dir, mode='w') as f:
-        json.dump(account, f)
-
 
 class User:
+    """
+    用户类
+    """
     def __init__(self, uid=0):
+        """
+        初始化用户类
+        :param uid: 请求的用户uid（若uid为0，则指向已登录的用户）
+        """
         self.uid = uid
         resp = connectApi(apiUrl=urls.getUserFullInfo.format(uid))
         info = resp.json()
@@ -401,57 +584,134 @@ class User:
             self.posts = list()
 
     def getUid(self):
+        """
+        获取用户uid（若不存在则返回0）
+        :return:
+        """
         return int(self.info['user_info']['uid']) if self.isExist else 0
 
     def getNickname(self):
+        """
+        获取用户昵称
+        :return:
+        """
         if self.uid == 0:
             return self.info['user_info']['nickname'] if self.isLogin else '未登录'
         else:
             return self.info['user_info']['nickname'] if self.isExist else '用户不存在'
 
     def getAvatar(self):
-        return self.info['user_info'][
-            'avatar_url'] if self.isExist else urls.defaultAvatar
+        """
+        获取用户头像
+        :return:
+        """
+        return self.info['user_info']['avatar_url'] if self.isExist else urls.defaultAvatar
 
     def getUserPost(self, offset=0, size=20):
+        """
+        获取用户所发表的文章
+        :param offset:
+        :param size: 单次获取的最大的文章数量
+        :return:
+        """
         resp = connectApi(urls.userPost.format(offset, size, self.getUid()))
         posts = resp.json()['data']
         userPosts = dict(isLast=posts['is_last'], posts=articleSet(posts['list']), next=posts['next_offset'])
-
         return userPosts
 
 
 class Actions:
-    def follow(self, uid):
+    """
+    操作类
+    """
+    @staticmethod
+    def follow(uid):
+        """
+        关注用户
+        :param uid: 用户uid
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
 
-    def unfollow(self, uid):
+    @staticmethod
+    def unfollow(uid):
+        """
+        取关用户
+        :param uid: 用户uid
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
 
-    def upvotePost(self, post_id, isCancel):
+    @staticmethod
+    def upvotePost(post_id, isCancel):
+        """
+        文章点赞操作
+        :param post_id: 文章id
+        :param isCancel: 是否取消点赞
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
-        resp = connectApi(urls.upvotePost, method='post', headers=header, data={"post_id": post_id, "is_cancel": isCancel}).json()
+        resp = connectApi(urls.upvotePost, method='post', headers=header,
+                          data={"post_id": post_id, "is_cancel": isCancel}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
 
-    def collectPost(self, post_id, isCancel):
+    @staticmethod
+    def upvoteReply(reply_id, post_id, isCancel):
+        """
+        评论点赞操作
+        :param reply_id: 评论id
+        :param post_id: 文章id
+        :param isCancel: 是否取消点赞
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
-        resp = connectApi(urls.collectPost, method='post', headers=header, data={"post_id": post_id, "is_cancel": isCancel}).json()
+        resp = connectApi(urls.upvoteReply, method='post', headers=header,
+                          data={"post_id": post_id, "reply_id": reply_id, "is_cancel": isCancel, "gids": '1'}).json()
         logging.info(resp)
         return resp['retcode'], resp['message']
 
-    def getHistory(self, offset=''):
+    @staticmethod
+    def collectPost(post_id, isCancel):
+        """
+        收藏文章
+        :param post_id: 文章id
+        :param isCancel: 是否取消收藏
+        :return:
+        """
+        header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
+        resp = connectApi(urls.collectPost, method='post', headers=header,
+                          data={"post_id": post_id, "is_cancel": isCancel}).json()
+        logging.info(resp)
+        return resp['retcode'], resp['message']
+
+    @staticmethod
+    def getHistory(offset=''):
+        """
+        获取用户浏览历史
+        :param offset:
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.history.format(str(offset)), headers=header).json()['data']
         return articleSet(resp['list'], method='history'), resp['is_last']
 
-    def releaseReply(self, delta, text, post_id, reply_id=''):
+    @staticmethod
+    def releaseReply(delta, text, post_id, reply_id=''):
+        """
+        发布评论
+        :param delta: 评论的delta结构化信息（基于quill.js）
+        :param text: 评论文本
+        :param post_id: 发布到的文章uid
+        :param reply_id: 回复楼中楼的id
+        :return:
+        """
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         delta = json.dumps(delta['ops'], ensure_ascii=False)
         reply_contents = {
@@ -464,8 +724,12 @@ class Actions:
         return resp['retcode'], resp['message']
 
 
-
 def debug(path='./debugs/'):
+    """
+    api调试
+    :param path:
+    :return:
+    """
     url = urls.collectPost
     body = {"is_cancel": False, "post_id": "42109377"}
     header = headerGenerate()

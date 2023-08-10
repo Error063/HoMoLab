@@ -1,23 +1,30 @@
 {% extends 'base.html' %}
-{% block body %}
+{% block main %}
     <div class="article">
         <div class="thread">
             {# 作者信息 #}
-            <div class="user fix" onclick="window.location.href = '/user?uid={{ thread.getAuthorUid() }}'">
-                <img class="avatar" src="{{ thread.getAuthorAvatar() }}"/>
+            <div class="user fix" onclick="window.location.href = '/user?uid={{ thread.result['data']['post']['user']['uid'] }}'">
+                <img class="avatar" src="{{ thread.result['data']['post']['user']['avatar_url'] }}"/>
                 <div class="userinfo">
-                    <div class="nickname">{{ thread.getAuthor() }}</div>
+                    <div class="nickname">{{ thread.result['data']['post']['user']['nickname'] }}</div>
                     <div class="describe">{{ thread.getAuthorDescribe() }}</div>
                 </div>
             </div>
             <div class="content ql-editor fix">
-                <h1 class="fix">{{ thread.getTitle() }}</h1>
+                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
                 {% if type == 1 %}
                     {{ thread.getContent() | safe }}
+                    <script>
+                    $(document).ready(function() {
+                        $(".ql-fold").click(function() {
+                            $(this).toggleClass('expand');
+                        })
+                    })
+                    </script>
                 {% elif type == 2 %}
-                    {{ thread.getStructuredContent(rendered=True) | safe }}
-                    {% for images in thread.getImages() %}
+                    {{ thread.getStructuredContent() | safe }}
+                    {% for images in thread.result['data']['post']['post']['images'] %}
                         <div class="ql-image">
                             <div class="ql-image-box">
                                 <img class="content" src="{{ images }}">
@@ -25,7 +32,32 @@
                         </div>
                     {% endfor %}
                 {% elif type == 5 %}
-                    <span style="color: yellow; font-size: 20px;">[视频暂不支持播放]</span>
+                        <video controls width="600" id="video"></video>
+                        <label for="resolution">清晰度：</label>
+                        <select name="resolution" id="resolution" style="width: 100px;" onchange="resolutionChange()"></select>
+                        <script>
+                            let vod_list = {{ thread.getVideo() | safe }}[0];
+                            let cover = vod_list['cover']
+                            let vods = vod_list['resolutions']
+                            let resolutions = document.getElementById('resolution')
+                            let videoClass = document.getElementById('video')
+                            videoClass.poster = cover
+                            for (let i = 0;i < vods.length; i++) {
+                                resolutions.options.add(new Option(vods[i]['definition'], vods[i]['url']))
+                            }
+                            resolutions.options[0].select = true
+                            function resolutionChange() {
+                                let index = resolutions.selectedIndex
+                                let vodSrc_selected = resolutions.options[index].value
+                                let playTime = videoClass.currentTime
+                                videoClass.src = vodSrc_selected
+                                videoClass.load()
+                                videoClass.currentTime = playTime
+                                videoClass.play()
+                            }
+                            resolutionChange()
+                            videoClass.pause()
+                        </script>
                 {% endif %}
             </div>
             <br>
@@ -40,45 +72,66 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <div class="votes">
-            <span>点赞数：</span>
-            <span class="voteNum">{{ thread.getVotes() }}</span>
-            <button class="voteBtn" onclick="upVote('{{ thread.getPostId() }}', {{ 'true' if thread.getSelfAttitude() else 'false' }})">
-                {{ '取消点赞' if thread.getSelfAttitude() else '点赞' }}
-            </button>
-        </div>
-        <div class="replyOuter">
-            <div id="releaseReply" class="releaseReply"></div>
-            <button class="replyBtn fix" onclick="releaseReply({{ thread.getPostId() }})">提交</button>
-        </div>
-        <script>
-            let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'});
-            function releaseReply(post_id) {
-                let delta = quill_releaseReply.getContents();
-                let text = quill_releaseReply.getText();
-                if (text.length > 0){
-                    try {
-                        pywebview.api.releaseReply(delta, text, post_id).then(function (status) {
-                            if (status['status'] === 'ok') {
-                                alert('发送成功！');
-                                quill_releaseReply.setContents([])
-                            } else {
-                                alert(status['status']);
+            <div class="stat">
+                <div class="votes">
+                    <p>
+                        <span>点赞数：</span>
+                        <span class="voteNum">{{ thread.getVotes() }}</span>
+                    </p>
+                    {% if account.isLogin %}
+                        <button class="voteBtn"
+                                onclick="upVote('{{ thread.result["data"]['post']['post']['post_id'] }}', {{ 'true' if thread.getSelfAttitude() else 'false' }})">
+                        {{ '取消点赞' if thread.getSelfAttitude() else '点赞' }}
+                    {% endif %}
+                    </button>
+                </div>
+                <div class="collects">
+                    <p>
+                        <span>收藏数：</span>
+                        <span class="collectsNum">{{ thread.getCollects() }}</span>
+                    </p>
+                    {% if account.isLogin %}
+                        <button class="collectsBtn"
+                                onclick="collectPost('{{ thread.result["data"]['post']['post']['post_id'] }}', {{ 'true' if thread.getSelfCollect() else 'false' }})">
+                        {{ '取消收藏' if thread.getSelfCollect() else '收藏' }}
+                    {% endif %}
+                    </button>
+                </div>
+            </div>
+            {% if account.isLogin %}
+                <div class="replyOuter">
+                    <div id="releaseReply" class="releaseReply"></div>
+                    <button class="replyBtn fix" onclick="releaseReply({{ thread.result["data"]['post']['post']['post_id'] }})">发布</button>
+                </div>
+                <script>
+                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'});
+                    function releaseReply(post_id) {
+                        let delta = quill_releaseReply.getContents();
+                        let text = quill_releaseReply.getText();
+                        if (text.length > 0){
+                            try {
+                                pywebview.api.releaseReply(delta, text, post_id).then(function (status) {
+                                    if (status['status'] === 'ok') {
+                                        alert('发送成功！');
+                                        quill_releaseReply.setContents([])
+                                    } else {
+                                        alert(status['status']);
+                                    }
+                                })
+                            } catch (e) {
+                                console.log("using pywebview js api failed!")
+                                alert('发送失败！');
                             }
-                        })
-                    } catch (e) {
-                        console.log("using pywebview js api failed!")
-                        alert('发送失败！');
+                        }else {
+                            alert('内容不能为空！')
+                        }
                     }
-                }else {
-                    alert('内容不能为空！')
-                }
-            }
         </script>
+            {% endif %}
     </div>
 </div>
     {# 评论区（使用iframe嵌入） #}
     <div class="comments">
-        <iframe src="/comments?id={{ thread.getPostId() }}&gid={{ thread.getGameId() }}&page=1" allowTransparency></iframe>
+        <iframe src="/comments?id={{ thread.result["data"]['post']['post']['post_id'] }}&gid={{ thread.result["data"]['post']['post']['game_id'] }}&page=1" allowTransparency></iframe>
     </div>
 {% endblock %}

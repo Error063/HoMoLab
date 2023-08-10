@@ -1,7 +1,8 @@
+"""
+用户登录
+"""
 import json
-
 import webview
-import logging
 
 cookies = ''
 loginPageDestroyed_user = False
@@ -64,6 +65,9 @@ page = """<!DOCTYPE html>
 
 
 def login():
+    """
+    利用pywebview处理用户登录事件并将获取到的login_ticket写入到account.json中
+    """
     global cookies
 
     class apis:
@@ -80,6 +84,7 @@ def login():
         def getcookies_user(self):
             global loginPageDestroyed_user, cookies
             tmp = loginAccount_user.evaluate_js("document.cookie")
+            print(tmp)
 
             if "login_ticket" in tmp:
                 cookies += tmp
@@ -99,15 +104,11 @@ def login():
                 return {'flag': True}
             else:
                 return {'flag': False}
-
     api = apis()
     loginAccount_user = webview.create_window(title="!!!完成登录操作前请勿关闭该窗口!!!",
                                               url="https://user.mihoyo.com", hidden=True,
                                               confirm_close=True, height=900, width=900)
     main = webview.create_window(js_api=api, on_top=True, x=10, y=10, title='!!!完成登录操作前请勿关闭该窗口!!!',
                                  html=page, minimized=False, confirm_close=True, resizable=False)
-    # webview.start(debug=True)
-
     return cookies
 
-# print(login())

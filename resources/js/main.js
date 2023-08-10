@@ -1,3 +1,4 @@
+window.pywebview_loaded = false
 function hidePostCards(link) {
     try {
         let actionView = document.getElementsByClassName('userActionView')[0];
@@ -95,6 +96,18 @@ function upVote(post_id, isCancel) {
         console.info(status['status'])
     })
 }
+function collectPost(post_id, isCancel) {
+    pywebview.api.collectPost(post_id, isCancel).then(function (status) {
+        if (status['status'] === 'ok'){
+            let btn = document.getElementsByClassName("collectBtn")[0]
+            btn.textContent = isCancel?'收藏':'取消收藏'
+            btn.setAttribute('onclick', `collectPost('${post_id}', ${(!isCancel).toString()})`)
+            let collectNum = document.getElementsByClassName('collectNum')[0]
+            collectNum.textContent = isCancel?(Number(collectNum.textContent) - 1).toString():(Number(collectNum.textContent) + 1).toString()
+        }
+        console.info(status['status'])
+    })
+}
 window.onblur = function() {
     if (!document.hasFocus()){
         let header = document.getElementsByClassName("headers")[0]
@@ -118,7 +131,7 @@ window.onfocus = function () {
 window.onbeforeunload = function(){
     hideAndRedirect(null)
 }
-//
-// window.onunload = function(){
-//     console.log('页面刷新完成触发');
-// }
+window.addEventListener('pywebviewready', function() {
+    window.pywebview_loaded = true
+    console.log('pywebview has been loaded')
+})

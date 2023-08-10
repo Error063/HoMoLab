@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/personal.css">
     <script src="/resources?js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <meta charset="UTF-8">
     <title>米游社</title>
 </head>
@@ -13,13 +14,13 @@
     <div class="headers">
         <div class="controllers">
             <a onclick="pageControl('back')">
-                <div class="back controller" style="background-image: url('/resources?controllers')"></div>
+                <div class="back controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
             <a onclick="pageControl('reload')">
-                <div class="reload controller" style="background-image: url('/resources?controllers')"></div>
+                <div class="reload controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
             <a onclick="hideAndRedirect('/')">
-                <div class="home controller" style="background-image: url('/resources?controllers')"></div>
+                <div class="home controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
         </div>
         <div class="headerMiddle">
@@ -39,15 +40,15 @@
         </div>
         <div class="userControllers">
             <a onclick="hideAndRedirect('/history')">
-                <div class="history controller" style="background-image: url('/resources?controllers')"></div>
+                <div class="history controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
             <a onclick="hideAndRedirect('/setting')">
-                <div class="settingIcon controller" style="background-image: url('/resources?controllers')"></div>
+                <div class="settingIcon controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
         </div>
     </div>
     <div class="main">
-        {% block body %}
+        {% block main %}
         {% endblock %}
     </div>
 </body>

@@ -1,12 +1,17 @@
+"""
+api的集合
+"""
+api_base = "https://bbs-api.miyoushe.com/"
+
 # File
 defaultAvatar = "https://bbs-static.miyoushe.com/avatar/avatarDefault.png"
-
-api_base = "https://bbs-api.miyoushe.com/"
 
 # Gets
 Cookie_url = "https://webapi.account.mihoyo.com/Api/cookie_accountinfo_by_loginticket?login_ticket={0}"
 Cookie_url2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
-getPostReplies = api_base + "post/wapi/getPostReplies?gids={0}&is_hot={1}&post_id={2}&size={3}&last_id={4}&order_type={5}"
+getPostReplies = api_base + "post/api/getPostReplies?gids={0}&is_hot={1}&post_id={2}&size={3}&last_id={4}&order_type={5}&only_master={6}"
+getSubReplies = api_base + "post/api/getSubReplies?post_id={0}&floor_id={1}&last_id={2}&size={3}"
+getRootReplyInfo = api_base + 'post/api/getRootReplyInfo?post_id={0}&reply_id={1}'
 webHome = api_base + "apihub/wapi/webHome?gids={0}&page={1}&page_size={2}"
 getPostFull = api_base + "post/api/getPostFull?post_id={0}"
 feedPosts = api_base + "post/api/feeds/posts?gid={0}&last_id=&fresh_action={1}&is_first_initialize=true&filter="
@@ -24,3 +29,4 @@ unfollow = api_base + "timeline/api/unfollow"
 upvotePost = api_base + "apihub/sapi/upvotePost"
 collectPost = api_base + 'post/api/collectPost'
 releaseReply = api_base + 'post/api/releaseReply'
+upvoteReply = api_base + "apihub/sapi/upvoteReply"
