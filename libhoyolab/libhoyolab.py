@@ -9,8 +9,11 @@ import uuid
 import urllib3
 import json
 import requests
-from libhoyolab import threadRender, accountLogin, urls
 import logging
+
+from libhoyolab import threadRender, urls
+
+logger = logging.getLogger('libhoyolab')
 
 urllib3.disable_warnings()
 
@@ -151,13 +154,13 @@ def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, 
     return headers
 
 
-def getEmotions(gid: str | int='2') -> dict:
+def getEmotions(gid: str | int = '2') -> dict:
     """
     获取表情包所对应的图片路径
     :param gid:
     :return: dict
     """
-    logging.info('emotion lib is running')
+    logger.info('emotion lib is running')
     emotionDict = dict()
     req = session.get(urls.emoticon_set.format(str(gid)), verify=False)
     contents = json.loads(req.content.decode("utf8"))['data']['list']
@@ -245,8 +248,8 @@ def login():
     :return:
     """
     global cookie, login_ticket, stuid, stoken, account
-    logging.info("=" * 20)
-    logging.info("logining...")
+    logger.info("=" * 20)
+    logger.info("logining...")
     with open(account_file) as f:
         login_ticket = json.load(f)['login_ticket']
     resp = session.get(urls.Cookie_url.format(login_ticket))
@@ -259,10 +262,10 @@ def login():
         account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
         with open(account_file, mode='w') as f:
             json.dump(account, f)
-        logging.info(f'success')
+        logger.info(f'success')
         return 'ok'
     else:
-        logging.error(f'failed, {data}')
+        logger.error(f'failed, {data}')
         return 'failed'
 
 
@@ -272,8 +275,8 @@ def logout():
     :return:
     """
     global account, cookie, login_ticket, stuid, stoken
-    logging.info("=" * 20)
-    logging.info("logoff...")
+    logger.info("=" * 20)
+    logger.info("logoff...")
     os.unlink(account_file)
     cookie = ''
     login_ticket = ''
@@ -294,8 +297,8 @@ class Article:
         初始化文章类
         :param post_id: 文章id
         """
-        logging.info(f'getting article from {post_id}')
-        logging.info('accessing ' + urls.getPostFull.format(str(post_id)))
+        logger.info(f'getting article from {post_id}')
+        logger.info('accessing ' + urls.getPostFull.format(str(post_id)))
         headers = headerGenerate(app='web')
         resp = connectApi(urls.getPostFull.format(str(post_id)), headers=headers)
         self.result = resp.json()
@@ -314,7 +317,8 @@ class Article:
         :return:
         """
         structured = self.result["data"]["post"]["post"]["structured_content"]
-        return threadRender.replaceAllFromDelta(structured, emotionDict=getEmotions(gid=self.result["data"]['post']['post']['game_id']))
+        return threadRender.replaceAllFromDelta(structured, emotionDict=getEmotions(
+            gid=self.result["data"]['post']['post']['game_id']))
 
     def getVideo(self) -> str:
         """
@@ -387,7 +391,7 @@ class Page:
         :param pageSize: 单次获取的最大的文章数量
         """
         self.page = page
-        logging.info('getting page')
+        logger.info('getting page')
         if pageType == 'recommend':
             apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
         elif pageType == 'feeds':  # 获取发现页时有问题
@@ -399,7 +403,7 @@ class Page:
                 typeNum = newsType[pageType]
             apiUrl = urls.getNewsList.format(str(gid), str(typeNum), str(pageSize),
                                              str(abs((int(page) - 1) * int(pageSize))))
-        logging.info('accessing ' + apiUrl)
+        logger.info('accessing ' + apiUrl)
         req = connectApi(apiUrl)
         result = req.json()
         self.articles = articleSet(result['data']['recommended_posts' if pageType == 'recommend' else 'list'])
@@ -425,11 +429,11 @@ class Comments:
         self.post_id = post_id
         self.gid = str(gid)
         start = abs((int(page) - 1) * int(max_size))
-        logging.info(f"getting comments from {post_id}, start from {start}")
+        logger.info(f"getting comments from {post_id}, start from {start}")
         emotionDict = getEmotions(gid)
         apiUrl = urls.getPostReplies.format(str(gid), str(rank_by_hot).lower(), str(post_id), str(max_size),
                                             str(start), str(orderby), str(only_master).lower())
-        logging.info("accessing " + apiUrl)
+        logger.info("accessing " + apiUrl)
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(apiUrl, headers=header)
         result = resp.json()
@@ -454,7 +458,8 @@ class Comments:
                     reply['user']['certification']['label']) > 0 else reply['user']['introduce'],
                 'like_num': reply['stat']['like_num'],
                 'sub_num': int(reply['stat']['sub_num']),
-                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(reply['self_operation']['attitude'])
+                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(
+                    reply['self_operation']['attitude'])
             }
             if rank_by_hot:
                 if reply['reply']:
@@ -472,6 +477,7 @@ class RootComment:
     """
     评论类
     """
+
     def __init__(self, post_id, reply_id):
         """
         初始化评论类
@@ -480,29 +486,31 @@ class RootComment:
         """
         self.post_id = post_id
         self.reply_id = reply_id
-        logging.info(f"getting root comment {reply_id} in {post_id}")
-        logging.info(f"accessing {urls.getRootReplyInfo.format(str(post_id), str(reply_id))}")
+        logger.info(f"getting root comment {reply_id} in {post_id}")
+        logger.info(f"accessing {urls.getRootReplyInfo.format(str(post_id), str(reply_id))}")
         resp = connectApi(urls.getRootReplyInfo.format(str(post_id), str(reply_id))).json()['data']
         emotionDict = getEmotions(resp['reply']['reply']['game_id'])
         self.comment = {
-                'reply_id': resp['reply']['reply']['reply_id'],
-                'floor_id': resp['reply']['reply']['floor_id'],
-                'post_id': resp['reply']['reply']['post_id'],
-                'content': threadRender.replaceAllFromDelta(resp['reply']['reply']['struct_content'], emotionDict),
-                'username': resp['reply']['user']['nickname'],
-                'uid': int(resp['reply']['user']['uid']),
-                'avatar': resp['reply']['user']['avatar_url'],
-                'describe': resp['reply']['user']['certification']['label'] if len(
-                    resp['reply']['user']['certification']['label']) > 0 else resp['reply']['user']['introduce'],
-                'like_num': resp['reply']['stat']['like_num'],
-                'upvoted': bool(resp['reply']['self_operation']['reply_vote_attitude']) and bool(resp['reply']['self_operation']['attitude'])
-            }
+            'reply_id': resp['reply']['reply']['reply_id'],
+            'floor_id': resp['reply']['reply']['floor_id'],
+            'post_id': resp['reply']['reply']['post_id'],
+            'content': threadRender.replaceAllFromDelta(resp['reply']['reply']['struct_content'], emotionDict),
+            'username': resp['reply']['user']['nickname'],
+            'uid': int(resp['reply']['user']['uid']),
+            'avatar': resp['reply']['user']['avatar_url'],
+            'describe': resp['reply']['user']['certification']['label'] if len(
+                resp['reply']['user']['certification']['label']) > 0 else resp['reply']['user']['introduce'],
+            'like_num': resp['reply']['stat']['like_num'],
+            'upvoted': bool(resp['reply']['self_operation']['reply_vote_attitude']) and bool(
+                resp['reply']['self_operation']['attitude'])
+        }
 
 
 class SubComments:
     """
     楼中楼类
     """
+
     def __init__(self, post_id, floor_id, last_id=0, gid=2, max_size=20):
         """
         初始化楼中楼类
@@ -516,10 +524,10 @@ class SubComments:
         self.floor_id = floor_id
         self.prev_id = last_id
         self.gid = gid
-        logging.info(f"getting sub comments from {floor_id} in {post_id}, start from id {last_id}")
+        logger.info(f"getting sub comments from {floor_id} in {post_id}, start from id {last_id}")
         emotionDict = getEmotions(gid)
         apiUrl = urls.getSubReplies.format(str(post_id), str(floor_id), str(last_id), str(max_size))
-        logging.info(f'accessing {apiUrl}')
+        logger.info(f'accessing {apiUrl}')
         header = headerGenerate()
         resp = connectApi(apiUrl=apiUrl, headers=header).json()
         self.comments = list()
@@ -537,7 +545,8 @@ class SubComments:
                 'describe': reply['user']['certification']['label'] if len(
                     reply['user']['certification']['label']) > 0 else reply['user']['introduce'],
                 'like_num': reply['stat']['like_num'],
-                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(reply['self_operation']['attitude'])
+                'upvoted': bool(reply['self_operation']['reply_vote_attitude']) and bool(
+                    reply['self_operation']['attitude'])
             })
 
 
@@ -556,8 +565,8 @@ class Search:
         """
         self.gid = gid
         start = int(page)
-        logging.info(f'searching {keyWords}, from {start}')
-        logging.info(f'accessing {urls.searchPosts.format(str(gid), str(keyWords), str(start), str(max_size))}')
+        logger.info(f'searching {keyWords}, from {start}')
+        logger.info(f'accessing {urls.searchPosts.format(str(gid), str(keyWords), str(start), str(max_size))}')
         req = connectApi(apiUrl=urls.searchPosts.format(str(gid), str(keyWords), str(start), str(max_size)))
         result = req.json()
         self.isLastFlag = result['data']['is_last']
@@ -568,14 +577,15 @@ class User:
     """
     用户类
     """
+
     def __init__(self, uid=0):
         """
         初始化用户类
         :param uid: 请求的用户uid（若uid为0，则指向已登录的用户）
         """
         self.uid = uid
-        logging.info(f"getting user {uid}'s informations")
-        logging.info(f"accessing {urls.getUserFullInfo.format(uid)}")
+        logger.info(f"getting user {uid}'s informations")
+        logger.info(f"accessing {urls.getUserFullInfo.format(uid)}")
         resp = connectApi(apiUrl=urls.getUserFullInfo.format(uid))
         info = resp.json()
         self.isExist = False
@@ -631,6 +641,7 @@ class Actions:
     """
     操作类
     """
+
     @staticmethod
     def follow(uid):
         """
@@ -638,10 +649,10 @@ class Actions:
         :param uid: 用户uid
         :return:
         """
-        logging.info(f"following user {uid}")
+        logger.info(f"following user {uid}")
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
-        logging.info(resp)
+        logger.info(resp)
         return resp['retcode'], resp['message']
 
     @staticmethod
@@ -651,10 +662,10 @@ class Actions:
         :param uid: 用户uid
         :return:
         """
-        logging.info(f"unfollowing user {uid}")
+        logger.info(f"unfollowing user {uid}")
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.follow, method='post', headers=header, data={'entity_id': str(uid)}).json()
-        logging.info(resp)
+        logger.info(resp)
         return resp['retcode'], resp['message']
 
     @staticmethod
@@ -665,11 +676,11 @@ class Actions:
         :param isCancel: 是否取消点赞
         :return:
         """
-        logging.info(f'{"canceling " if isCancel else ""}upvote the post {post_id}')
+        logger.info(f'{"canceling " if isCancel else ""}upvote the post {post_id}')
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.upvotePost, method='post', headers=header,
                           data={"post_id": post_id, "is_cancel": isCancel}).json()
-        logging.info(resp)
+        logger.info(resp)
         return resp['retcode'], resp['message']
 
     @staticmethod
@@ -681,11 +692,11 @@ class Actions:
         :param isCancel: 是否取消点赞
         :return:
         """
-        logging.info(f'{"canceling " if isCancel else ""}upvote the reply {reply_id} in {post_id}')
+        logger.info(f'{"canceling " if isCancel else ""}upvote the reply {reply_id} in {post_id}')
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.upvoteReply, method='post', headers=header,
                           data={"post_id": post_id, "reply_id": reply_id, "is_cancel": isCancel, "gids": '1'}).json()
-        logging.info(resp)
+        logger.info(resp)
         return resp['retcode'], resp['message']
 
     @staticmethod
@@ -696,7 +707,7 @@ class Actions:
         :param isCancel: 是否取消收藏
         :return:
         """
-        logging.info(f'{"canceling " if isCancel else ""}collect the post{post_id}')
+        logger.info(f'{"canceling " if isCancel else ""}collect the post{post_id}')
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.collectPost, method='post', headers=header,
                           data={"post_id": post_id, "is_cancel": isCancel}).json()
@@ -709,7 +720,7 @@ class Actions:
         :param offset:
         :return:
         """
-        logging.info("getting user's history")
+        logger.info("getting user's history")
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.history.format(str(offset)), headers=header).json()['data']
         return articleSet(resp['list'], method='history'), resp['is_last']
@@ -724,7 +735,7 @@ class Actions:
         :param reply_id: 回复楼中楼的id
         :return:
         """
-        logging.info(f"releasing the reply to post {post_id} with content {text}")
+        logger.info(f"releasing the reply to post {post_id} with content {text}")
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         delta = json.dumps(delta['ops'], ensure_ascii=False)
         reply_contents = {

@@ -24,13 +24,14 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
+version = '0.9.0'
 appicon_dir = './resources/appicon.ico'
 config_dir = './configs'
 config_file = f'{config_dir}/config.json'
 logs_dir = './logs'
-gamesName = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学园2', '3'], 'wd': ['未定事件簿', '4'],
-             'dby': ['大别野', '5'],
-             'sr': ['崩坏：星穹铁道', '6'], 'none': ['空', '-1'], 'zzz': ['绝区零', '8']}
+gameDict = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学园2', '3'], 'wd': ['未定事件簿', '4'],
+            'dby': ['大别野', '5'],
+            'sr': ['崩坏：星穹铁道', '6'], 'none': ['空', '-1'], 'zzz': ['绝区零', '8']}
 actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "activity": "活动", "information": "资讯",
            "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误"}
 localization = {'global.quitConfirmation': '确定关闭?'}
@@ -198,7 +199,7 @@ def resources():
     """
     if 'logo' in request.args:
         logo = request.args.get('logo')
-        if logo in gamesName.keys():
+        if logo in gameDict.keys():
             return send_file(f'./resources/logos/{logo}.jpg')
         if logo == 'appicon':
             return send_file(f'./resources/logos/appicon.png')
@@ -274,11 +275,11 @@ def main(game):
     """
     global nowPage
     nowPage = game
-    window.set_title(f'HoMoLab - {gamesName[game][0]}')
+    window.set_title(f'HoMoLab - {gameDict[game][0]}')
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     logging.info(page)
     return render_template('posts.html',
-                           articles=libhoyolab.Page(gid=gamesName[game][1], page=page, pageType='recommend').articles,
+                           articles=libhoyolab.Page(gid=gameDict[game][1], page=page, pageType='recommend').articles,
                            select='recommend', game=nowPage, viewActions=actions, page=page, isLast=False,
                            account=account)
 
@@ -292,7 +293,7 @@ def search(game):
     :return:
     """
     keyword = request.args.get('keyword')
-    gameid = gamesName[game][1]
+    gameid = gameDict[game][1]
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     search_result = libhoyolab.Search(keyWords=keyword, gid=gameid, page=page)
     return render_template('posts.html', articles=search_result.articles, search=keyword, select='search', game=nowPage,
@@ -312,7 +313,7 @@ def news(game):
     requestType = request.args.get('type') if 'type' in request.args else 'announce'
     page = int(request.args.get('page') if 'page' in request.args else '1')
     return render_template('posts.html',
-                           articles=libhoyolab.Page(gid=gamesName[game][1], page=page, pageType=requestType).articles,
+                           articles=libhoyolab.Page(gid=gameDict[game][1], page=page, pageType=requestType).articles,
                            select=requestType, game=nowPage, viewActions=actions, page=page, account=account)
 
 
@@ -326,7 +327,7 @@ def setting():
     global config, nowPage, openLoad
     if request.method == 'GET':
         return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=False,
-                               config=config, account=account)
+                               config=config, account=account, version=version)
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
@@ -337,7 +338,7 @@ def setting():
             json.dump(config, fp)
             logging.info(fp.read())
         return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True,
-                               config=config, account=account)
+                               config=config, account=account, version=version)
 
 
 @app.route('/user')
@@ -373,7 +374,7 @@ def index():
     应用主页（应用进入时的入口）
     :return:
     """
-    window.set_title(f'HoMoLab - {gamesName[nowPage][0]}')
+    window.set_title(f'HoMoLab - {gameDict[nowPage][0]}')
     return redirect(f'/{nowPage}')
 
 

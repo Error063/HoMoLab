@@ -393,8 +393,11 @@ body::-webkit-scrollbar {
     padding: 20px;
     overflow: hidden;
 }
+.article .title{
+    margin: 5%;
+}
 .article .content{
-    margin: 20px;
+    margin: 5%;
 }
 .article .content img:not(.emotionIcon){
     border: none;

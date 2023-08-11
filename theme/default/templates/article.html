@@ -10,48 +10,49 @@
                     <div class="describe">{{ thread.getAuthorDescribe() }}</div>
                 </div>
             </div>
-            <div class="content ql-editor fix">
-                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
+            <h1 class="title fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
+            <div class="content fix">
+{#                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>#}
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
                 {% if type == 1 %}
-                    {{ thread.getContent() | safe }}
+                    <div class="ql-editor">{{ thread.getContent() | safe }}</div>
                     <script>
-                    if($(".mhy-vod").length > 0){
-                        let vod_lists = Object({{ thread.getVideo() | safe }});
-                        let resolutions = document.getElementsByName('resolution');
-                        let videoClass = document.getElementsByClassName('video');
-                        let mhyvods = document.getElementsByClassName('mhy-vod');
-                        for (let i = 0; i < vod_lists.length; i++) {
-                            mhyvods[i].innerHTML += `<video controls width="600" class="video"></video>`;
-                            mhyvods[i].innerHTML += '<label for="resolution">清晰度：</label>';
-                            mhyvods[i].innerHTML += `<select name="resolution" id="resolution" class="resolution" style="width: 100px;" onchange="resolutionChange(${i})"></select>`;
-                            let vod_list = vod_lists[i];
-                            let cover = vod_list['cover'];
-                            let vods = vod_list['resolutions'];
-                            videoClass[i].poster = cover;
-                            let options = ''
-                            for (let j = 0;j < vods.length; j++) {
-                                options += `<option value="${vods[j]['url']}">${vods[j]['definition']}</option>`
+                        if($(".mhy-vod").length > 0){
+                            let vod_lists = Object({{ thread.getVideo() | safe }});
+                            let resolutions = document.getElementsByName('resolution');
+                            let videoClass = document.getElementsByClassName('video');
+                            let mhyvods = document.getElementsByClassName('mhy-vod');
+                            for (let i = 0; i < vod_lists.length; i++) {
+                                mhyvods[i].innerHTML += `<video controls width="600" class="video"></video>`;
+                                mhyvods[i].innerHTML += '<p><label for="resolution">清晰度：</label>';
+                                mhyvods[i].innerHTML += `<select name="resolution" id="resolution" class="resolution" style="width: 100px;" onchange="resolutionChange(${i})"></select></p>`;
+                                let vod_list = vod_lists[i];
+                                let cover = vod_list['cover'];
+                                let vods = vod_list['resolutions'];
+                                videoClass[i].poster = cover;
+                                let options = ''
+                                for (let j = 0;j < vods.length; j++) {
+                                    options += `<option value="${vods[j]['url']}">${vods[j]['definition']}</option>`
+                                }
+                                resolutions[i].innerHTML = options;
+                                resolutionChange(i);
+                                videoClass[i].pause();
                             }
-                            resolutions[i].innerHTML = options;
-                            resolutionChange(i);
-                            videoClass[i].pause();
                         }
-                    }
-                    function resolutionChange(i) {
-                        let resolutions = document.getElementsByName('resolution');
-                        let videoClass = document.getElementsByClassName('video');
-                        let index = resolutions[i].selectedIndex;
-                        let vodSrc_selected = resolutions[i].options[index].value;
-                        let playTime = videoClass[i].currentTime;
-                        videoClass[i].src = vodSrc_selected;
-                        videoClass[i].load();
-                        videoClass[i].currentTime = playTime;
-                        videoClass[i].play();
-                    }
-                    $(".ql-fold").click(function() {
-                        $(this).toggleClass('expand');
-                    });
+                        function resolutionChange(i) {
+                            let resolutions = document.getElementsByName('resolution');
+                            let videoClass = document.getElementsByClassName('video');
+                            let index = resolutions[i].selectedIndex;
+                            let vodSrc_selected = resolutions[i].options[index].value;
+                            let playTime = videoClass[i].currentTime;
+                            videoClass[i].src = vodSrc_selected;
+                            videoClass[i].load();
+                            videoClass[i].currentTime = playTime;
+                            videoClass[i].play();
+                        }
+                        $(".ql-fold").click(function() {
+                            $(this).toggleClass('expand');
+                        });
                     </script>
                 {% elif type == 2 %}
                     <div class="img-contents" id="contents"></div>
@@ -68,9 +69,14 @@
                         </div>
                     {% endfor %}
                 {% elif type == 5 %}
-                        <video controls width="600" id="video"></video>
-                        <label for="resolution">清晰度：</label>
-                        <select name="resolution" id="resolution" style="width: 100px;" onchange="resolutionChange()"></select>
+                        <div class="mhy-vod">
+                            <video controls width="600" id="video"></video>
+                            <p>
+                                <label for="resolution">清晰度：</label>
+                                <select name="resolution" id="resolution" style="width: 100px;"
+                                        onchange="resolutionChange()"></select>
+                            </p>
+                        </div>
                         <script>
                             let vod_list = {{ thread.getVideo() | safe }}[0];
                             let cover = vod_list['cover']

@@ -4,7 +4,7 @@
     <div class="userBig">
         <img src="{{ user.getAvatar() }}" alt="">
         <h1>{{ user.getNickname() }}</h1>
-        {% if user.uid != 0 %}
+        {% if user.uid != 0 and account.isLogin %}
             <button class="followBtn {{ "follow" if user.info['follow_relation']['is_following'] else "unfollow" }}" onclick="followUser('{{ user.uid }}', '{{ "unfollow" if user.info['follow_relation']['is_following'] else "follow" }}')">
             {{ '取消关注' if user.info['follow_relation']['is_following'] else '关注' }}
         </button>
