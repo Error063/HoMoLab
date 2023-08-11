@@ -84,7 +84,6 @@ def login():
         def getcookies_user(self):
             global loginPageDestroyed_user, cookies
             tmp = loginAccount_user.evaluate_js("document.cookie")
-            print(tmp)
 
             if "login_ticket" in tmp:
                 cookies += tmp
@@ -98,7 +97,7 @@ def login():
                         break
                 with open(account_dir, mode='r') as fp:
                     account = json.load(fp)
-                with open(account_dir,mode='w+') as fp:
+                with open(account_dir, mode='w+') as fp:
                     account['login_ticket'] = cookies.split('=')[-1]
                     json.dump(account, fp)
                 return {'flag': True}

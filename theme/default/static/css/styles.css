@@ -1,5 +1,6 @@
 *{
     direction: ltr;
+    user-select: none !important;
 }
 /* clearfix */
 .fix::after{
@@ -547,15 +548,10 @@ iframe{
 #video{
     margin: 0 auto;
 }
-.mhy-vod:before{
-    content: "[视频暂不支持播放]";
-    text-align: center;
-    color: yellow;
-    font-size: 20px;
-}
 .mhy-vod{
     border: unset;
-    height: unset;
+    height: 500px;
+    margin: 15px auto;
 }
 .setting p{
     margin-top: 5px;

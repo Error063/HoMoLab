@@ -16,14 +16,50 @@
                 {% if type == 1 %}
                     {{ thread.getContent() | safe }}
                     <script>
-                    $(document).ready(function() {
-                        $(".ql-fold").click(function() {
-                            $(this).toggleClass('expand');
-                        })
-                    })
+                    if($(".mhy-vod").length > 0){
+                        let vod_lists = Object({{ thread.getVideo() | safe }});
+                        let resolutions = document.getElementsByName('resolution');
+                        let videoClass = document.getElementsByClassName('video');
+                        let mhyvods = document.getElementsByClassName('mhy-vod');
+                        for (let i = 0; i < vod_lists.length; i++) {
+                            mhyvods[i].innerHTML += `<video controls width="600" class="video"></video>`;
+                            mhyvods[i].innerHTML += '<label for="resolution">清晰度：</label>';
+                            mhyvods[i].innerHTML += `<select name="resolution" id="resolution" class="resolution" style="width: 100px;" onchange="resolutionChange(${i})"></select>`;
+                            let vod_list = vod_lists[i];
+                            let cover = vod_list['cover'];
+                            let vods = vod_list['resolutions'];
+                            videoClass[i].poster = cover;
+                            let options = ''
+                            for (let j = 0;j < vods.length; j++) {
+                                options += `<option value="${vods[j]['url']}">${vods[j]['definition']}</option>`
+                            }
+                            resolutions[i].innerHTML = options;
+                            resolutionChange(i);
+                            videoClass[i].pause();
+                        }
+                    }
+                    function resolutionChange(i) {
+                        let resolutions = document.getElementsByName('resolution');
+                        let videoClass = document.getElementsByClassName('video');
+                        let index = resolutions[i].selectedIndex;
+                        let vodSrc_selected = resolutions[i].options[index].value;
+                        let playTime = videoClass[i].currentTime;
+                        videoClass[i].src = vodSrc_selected;
+                        videoClass[i].load();
+                        videoClass[i].currentTime = playTime;
+                        videoClass[i].play();
+                    }
+                    $(".ql-fold").click(function() {
+                        $(this).toggleClass('expand');
+                    });
                     </script>
                 {% elif type == 2 %}
-                    {{ thread.getStructuredContent() | safe }}
+                    <div class="img-contents" id="contents"></div>
+                    <script>
+                        let quill_contents = new Quill('#contents', {theme: 'bubble'});
+                        quill_contents.enable(false);
+                        quill_contents.setContents({{ thread.getStructuredContent() | safe }})
+                    </script>
                     {% for images in thread.result['data']['post']['post']['images'] %}
                         <div class="ql-image">
                             <div class="ql-image-box">
@@ -104,7 +140,7 @@
                     <button class="replyBtn fix" onclick="releaseReply({{ thread.result["data"]['post']['post']['post_id'] }})">发布</button>
                 </div>
                 <script>
-                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'});
+                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow', modules: {toolbar: ["link"]}});
                     function releaseReply(post_id) {
                         let delta = quill_releaseReply.getContents();
                         let text = quill_releaseReply.getText();
