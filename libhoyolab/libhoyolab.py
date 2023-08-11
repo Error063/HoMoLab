@@ -17,14 +17,14 @@ logger = logging.getLogger('libhoyolab')
 
 urllib3.disable_warnings()
 
-Salt_LK2 = 'PVeGWIZACpxXZ1ibMVJPi9inCY4Nd4y2'  # 米游社签到salt
-Salt_K2 = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'  # 米游社讨论区专用salt
-# Salt_LK2 = 'F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa'  # 米游社签到salt
-# Salt_K2 = 'xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA'  # 米游社讨论区专用salt
+# Salt_LK2 = 'PVeGWIZACpxXZ1ibMVJPi9inCY4Nd4y2'  # 米游社签到salt
+# Salt_K2 = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'  # 米游社讨论区专用salt
+Salt_K2 = 'F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa'  # 米游社签到salt
+Salt_LK2 = 'xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA'  # 米游社讨论区专用salt
 Salt_4X = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs	'
 Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
-mysVersion = "2.38.1"  # 米游社版本
-# mysVersion = '2.55.1'
+# mysVersion = "2.38.1"  # 米游社版本
+mysVersion = '2.55.1'
 mysClient_type = '2'  # 1:ios 2:Android
 
 config_dir = './configs'

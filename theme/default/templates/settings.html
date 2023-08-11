@@ -3,7 +3,7 @@
     <div class="setting">
         <p><h1>设置</h1>
         <p>
-            <span style="font: 10px italic;color: gray;">HoMoLab 版本：{{ version }}</span>
+            <span style="font-size: 10px;">HoMoLab 版本：{{ version }}</span>
             <a style="float: right;color: #d29c83" href="https://homolab.error063.work/" target="_blank">项目主页</a>
         </p>
         <hr/>
@@ -29,13 +29,20 @@
             <div class="settingItem">
                 <input type="checkbox" name="enableDebug" id="enableDebug" value="on" {{ 'checked' if config['enableDebug'] == 'on' }}>
                 <input type="hidden" name="enableDebug" value="off">
-                <label for="enableDebug">启用调试（下次启动时生效）</label>
+                <label for="enableDebug">启用调试</label>
             </div>
-            <div class="settingItem">
-                <input type="checkbox" name="colorFollowSystem" id="colorFollowSystem" value="on" {{ 'checked' if config['colorFollowSystem'] == 'on' }}>
-                <input type="hidden" name="colorFollowSystem" value="off">
-                <label for="colorFollowSystem">工具栏配色跟随系统</label>
-            </div>
+            {% if platform == 'Windows' %}
+                <div class="settingItem">
+                    <input type="checkbox" name="colorFollowSystem" id="colorFollowSystem" value="on" {{ 'checked' if config['colorFollowSystem'] == 'on' }}>
+                    <input type="hidden" name="colorFollowSystem" value="off">
+                    <label for="colorFollowSystem">工具栏配色跟随系统</label>
+                </div>
+                <div class="settingItem">
+                    <input type="checkbox" name="usingSystemWallpaper" id="usingSystemWallpaper" value="on" {{ 'checked' if config['usingSystemWallpaper'] == 'on' }}>
+                    <input type="hidden" name="usingSystemWallpaper" value="off">
+                    <label for="usingSystemWallpaper">使用系统壁纸作为应用背景</label>
+                </div>
+            {% endif %}
             <div class="settingItem">
                 <label for="openLoad">应用启动时默认显示 </label>
                 <select name="openLoad" id="openLoad">
