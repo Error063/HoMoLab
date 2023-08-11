@@ -42,13 +42,17 @@ if not os.path.exists(logs_dir):
 logging.basicConfig(filename=f"{logs_dir}/app-{init_time}.log",
                     filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
+config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto",
+          "theme": "default", "usingSystemWallpaper": "off"}
 
 try:
     with open(config_file) as f:
-        config = json.load(f)
+        config_read = json.load(f)
+    for c in config_read:
+        config[c] = config_read[c]
+    with open(config_file, mode='w') as f:
+        json.dump(config, f)
 except FileNotFoundError:
-    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto",
-              "theme": "default"}
     logging.warning('configs load failed, creating...')
     if not os.path.exists(config_dir):
         os.mkdir(config_dir)
@@ -68,7 +72,7 @@ if not (os.path.exists('./resources')):
     sys.exit(-1)
 
 openLoad = nowPage = config['openLoad']
-debug = True if config['enableDebug'] == 'on' else False
+# debug = True if config['enableDebug'] == 'on' else False
 logging.info(f"debug mode: {config['enableDebug']}")
 theme = 'default'
 if 'theme' in config:
@@ -85,7 +89,7 @@ if not (os.path.exists(f'./theme/{theme}/templates') and os.path.exists(f'./them
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
-account = libhoyolab.User()
+load = True
 
 app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
 
@@ -111,7 +115,17 @@ def systemColorSet():
     return color, light
 
 
-# def LoadPage(*args, **kwargs):
+def getWallpaper():
+    """
+    获取用户壁纸
+    :return:
+    """
+    if config['usingSystemWallpaper'] == 'on' and platform.system() == 'Windows':
+        # return winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\Desktop"), 'WallPaper')[0]
+        return os.path.expanduser('~') + r'\AppData\Roaming\Microsoft\Windows\Themes\TranscodedWallpaper'
+    else:
+        return './resources/default.png'
+
 def LoadPage(func):
     """
     请求执行前的处理（应用鉴权，异常捕获）
@@ -131,8 +145,8 @@ def LoadPage(func):
             logging.info('browser that not allowed')
             return '<h1 style="color: red;text-align: center">APP鉴权失败！</h1>', 403
         else:
-            account = libhoyolab.User()
-            if debug:
+            if config['enableDebug'] == 'on':
+                account = libhoyolab.User()
                 resp = make_response(func(*args, **kwargs))
                 resp.set_cookie('token', token)
                 if firstAccess:
@@ -140,6 +154,7 @@ def LoadPage(func):
                 return resp
             else:
                 try:
+                    account = libhoyolab.User()
                     resp = make_response(func(*args, **kwargs))
                     resp.set_cookie('token', token)
                     if firstAccess:
@@ -189,6 +204,18 @@ def personal():
     resp = make_response(css)
     resp.content_type = "text/css"
     return resp
+
+
+@app.route('/wallpaper')
+def wallpaper():
+    """
+    返回壁纸
+    :return:
+    """
+    try:
+        return send_file(getWallpaper())
+    except FileNotFoundError:
+        return send_file('./resources/default.png')
 
 
 @app.route('/resources')
@@ -324,10 +351,10 @@ def setting():
     设置
     :return:
     """
-    global config, nowPage, openLoad
+    global config, nowPage, openLoad, load
     if request.method == 'GET':
         return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=False,
-                               config=config, account=account, version=version)
+                               config=config, account=account, version=version, platform=platform.system())
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
@@ -337,8 +364,10 @@ def setting():
         with open('configs/config.json', mode='w+') as fp:
             json.dump(config, fp)
             logging.info(fp.read())
-        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True,
-                               config=config, account=account, version=version)
+        load = True
+        window.destroy()
+        # return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True,
+        #                        config=config, account=account, version=version)
 
 
 @app.route('/user')
@@ -382,6 +411,7 @@ class Apis:
     """
     向Pywebview提供JavaScript API
     """
+
     def accountHandler(self):
         """
         执行账户登录/退出登录操作
@@ -522,19 +552,25 @@ class Apis:
 
 if __name__ == '__main__':
     apis = Apis()
-    if platform.system() == 'Windows' or debug:
+    if platform.system() == 'Windows' or config['enableDebug'] == 'on':
         try:
-            window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis, focus=True)
-            if not debug:
-                webview.start(gui="edgechromium", user_agent=appUserAgent, localization=localization)
-            else:
-                webview.start(user_agent=appUserAgent, debug=debug, localization=localization, server_args={'debug': debug})
+            while load:
+                window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis,
+                                               focus=True)
+                load = False
+                if not config['enableDebug'] == 'on':
+                    webview.start(gui="edgehtml", user_agent=appUserAgent, localization=localization)
+                else:
+                    webview.start(user_agent=appUserAgent, debug=config['enableDebug'] == 'on', localization=localization,
+                                  server_args={'debug': config['enableDebug'] == 'on'})
+                del window
+                time.sleep(1)
         except KeyError:
             pass
         except KeyboardInterrupt:
             pass
         except webview.util.WebViewException:
-            if not debug:
+            if not config['enableDebug'] == 'on':
                 messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
                 sys.exit(-1)
             else:
@@ -542,5 +578,5 @@ if __name__ == '__main__':
                 sys.exit(-1)
     else:
         messagebox.showerror(title="运行环境错误",
-                             message="对其他操作系统的支持尚处于测试阶段\n如需使用，请在configs/config.json下将'enableDebug'的值修改为'on'")
+                             message="对其他操作系统的支持尚处于测试阶段\n如需使用，请手动修改configs/config.json中的'enableDebug'的值修改为'on'")
         sys.exit(-1)
