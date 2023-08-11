@@ -1,4 +1,8 @@
-# encoding:utf-8
+"""
+应用主文件
+(C) 2023 - forever Error063
+Licensed under GPL 3 license
+"""
 import os
 import sys
 import time
@@ -11,10 +15,9 @@ import ctypes
 import jinja2
 from flask import Flask, render_template, request, redirect, make_response, send_file
 import json
-import libhoyolab
 import webview
 
-from libhoyolab import accountLogin
+from libhoyolab import libhoyolab, accountLogin
 
 if platform.system() == 'Windows':
     import winreg
@@ -22,9 +25,11 @@ if platform.system() == 'Windows':
 init_time = str(int(time.time()))
 
 appicon_dir = './resources/appicon.ico'
-config_dir = './configs/config.json'
+config_dir = './configs'
+config_file = f'{config_dir}/config.json'
 logs_dir = './logs'
-gamesName = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学园2', '3'], 'wd': ['未定事件簿', '4'], 'dby': ['大别野', '5'],
+gamesName = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学园2', '3'], 'wd': ['未定事件簿', '4'],
+             'dby': ['大别野', '5'],
              'sr': ['崩坏：星穹铁道', '6'], 'none': ['空', '-1'], 'zzz': ['绝区零', '8']}
 actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "activity": "活动", "information": "资讯",
            "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误"}
@@ -38,21 +43,23 @@ logging.basicConfig(filename=f"{logs_dir}/app-{init_time}.log",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 
 try:
-    with open(config_dir) as f:
+    with open(config_file) as f:
         config = json.load(f)
 except FileNotFoundError:
-    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto", "theme": "default"}
+    config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto",
+              "theme": "default"}
     logging.warning('configs load failed, creating...')
-    if not os.path.exists(config_dir + '/..'):
-        os.mkdir(config_dir + '/..')
-    with open(config_dir, mode='w') as f:
+    if not os.path.exists(config_dir):
+        os.mkdir(config_dir)
+    with open(config_file, mode='w') as f:
         json.dump(config, f)
 
 root = Tk()
 root.withdraw()
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
-ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
-root.tk.call('tk', 'scaling', ScaleFactor / 75)
+if platform.system() == 'Windows':
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+    root.tk.call('tk', 'scaling', ScaleFactor / 75)
 
 if not (os.path.exists('./resources')):
     logging.error('resource load failed')
@@ -110,6 +117,7 @@ def LoadPage(func):
     :param func:
     :return:
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         global firstAccess, nowPage, account
@@ -143,6 +151,7 @@ def LoadPage(func):
                 except Exception as e:
                     logging.info(f"Error! {e}")
                     return render_template('error.html', select='error', viewActions=actions), 500
+
     return wrapper
 
 
@@ -227,7 +236,6 @@ def article():
     post_id = request.args.get("id")
     thread = libhoyolab.Article(post_id=post_id)
     render_method = thread.result["data"]['post']['post']['view_type']
-    # game = gamesById[int(thread.result["data"]['post']['post']['game_id']) - 1]
     return render_template('article.html', select='article', thread=thread, type=render_method, game=nowPage,
                            account=account, viewActions=actions)
 
@@ -248,7 +256,8 @@ def comments():
         prev_id = request.args.get("prev_id") if 'prev_id' in request.args else '-1'
         rootReply = libhoyolab.RootComment(post_id, reply_id)
         subReplies = libhoyolab.SubComments(post_id, floor_id, last_id, gid)
-        return render_template('subcomment.html', prev_id=prev_id, floor_id=floor_id, reply_id=reply_id, replies=subReplies, rootReply=rootReply, account=account)
+        return render_template('subcomment.html', prev_id=prev_id, floor_id=floor_id, reply_id=reply_id,
+                               replies=subReplies, rootReply=rootReply, account=account)
     else:
         page = request.args.get("page") if 'page' in request.args else '1'
         replies = libhoyolab.Comments(post_id=post_id, gid=gid, page=page)
@@ -270,10 +279,10 @@ def main(game):
     logging.info(page)
     return render_template('posts.html',
                            articles=libhoyolab.Page(gid=gamesName[game][1], page=page, pageType='recommend').articles,
-                           select='recommend', game=nowPage, viewActions=actions, page=page, isLast=False, account=account)
+                           select='recommend', game=nowPage, viewActions=actions, page=page, isLast=False,
+                           account=account)
 
 
-# 搜索
 @app.route('/<game>/search')
 @LoadPage
 def search(game):
@@ -286,11 +295,10 @@ def search(game):
     gameid = gamesName[game][1]
     page = int('1' if 'page' not in request.args else request.args.get('page'))
     search_result = libhoyolab.Search(keyWords=keyword, gid=gameid, page=page)
-    return render_template('posts.html', articles=search_result.articles, search=keyword,
-                           select='search', game=nowPage, viewActions=actions, page=page, isLast=search_result.isLastFlag, account=account)
+    return render_template('posts.html', articles=search_result.articles, search=keyword, select='search', game=nowPage,
+                           viewActions=actions, page=page, isLast=search_result.isLastFlag, account=account)
 
 
-# 官方资讯
 @app.route('/<game>/news')
 @LoadPage
 def news(game):
@@ -317,8 +325,8 @@ def setting():
     """
     global config, nowPage, openLoad
     if request.method == 'GET':
-        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=False, config=config,
-                               account=account)
+        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=False,
+                               config=config, account=account)
     else:
         logging.info("the new settings had been uploaded!")
         settings = request.form.to_dict()
@@ -328,8 +336,8 @@ def setting():
         with open('configs/config.json', mode='w+') as fp:
             json.dump(config, fp)
             logging.info(fp.read())
-        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True, config=config,
-                               account=account)
+        return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True,
+                               config=config, account=account)
 
 
 @app.route('/user')
@@ -341,7 +349,8 @@ def user():
     """
     uid = request.args.get('uid') if 'uid' in request.args else 0
     userInfos = libhoyolab.User(int(uid))
-    return render_template('user.html', select='user', account=account, game=nowPage, viewActions=actions, user=userInfos,)
+    return render_template('user.html', select='user', account=account, game=nowPage, viewActions=actions,
+                           user=userInfos)
 
 
 @app.route('/history')
@@ -357,12 +366,11 @@ def history():
                            page=page, account=account, isLast=history_posts[1], viewActions=actions)
 
 
-# 跳转到指定分区
 @app.route('/')
 @LoadPage
 def index():
     """
-    应用主页
+    应用主页（应用进入时的入口）
     :return:
     """
     window.set_title(f'HoMoLab - {gamesName[nowPage][0]}')
@@ -370,7 +378,14 @@ def index():
 
 
 class Apis:
+    """
+    向Pywebview提供JavaScript API
+    """
     def accountHandler(self):
+        """
+        执行账户登录/退出登录操作
+        :return: 操作状态
+        """
         global account
         logging.info("=" * 15)
         logging.debug("accountHandler")
@@ -388,6 +403,10 @@ class Apis:
         return {'status': 'ok'}
 
     def refreshLoginStatus(self):
+        """
+        使用本地存储的login_ticket登录信息向服务器请求登录状态
+        :return: 操作状态
+        """
         global account
         logging.info("=" * 15)
         logging.debug("refreshLoginStatus")
@@ -401,6 +420,10 @@ class Apis:
         return {'status': 'ok'}
 
     def deleteLog(self):
+        """
+        删除本地日志（不删除当前运行的日志）
+        :return: 操作状态
+        """
         logging.info("=" * 15)
         logging.debug("deleteLog")
         log_list = os.listdir(logs_dir)
@@ -415,6 +438,14 @@ class Apis:
             return {'status': 'failed'}
 
     def releaseReply(self, delta, text, post_id, reply_id=''):
+        """
+        发布评论
+        :param delta: 结构化文本信息
+        :param text: 文本信息
+        :param post_id: 文章id
+        :param reply_id: 评论id（如果是给评论发评论，则需要传递此项）
+        :return: 操作状态
+        """
         result = libhoyolab.Actions.releaseReply(delta, text, post_id, reply_id)
         if result[0] == 0:
             return {'status': 'ok'}
@@ -423,11 +454,21 @@ class Apis:
             return {'status': f'{result[-1]}'}
 
     def getColor(self):
+        """
+        获取系统配色（Windows可用）
+        :return: 系统颜色
+        """
         logging.info("=" * 15)
         logging.debug("getColor")
         return {"colorSet": systemColorSet()}
 
     def followUser(self, uid, action):
+        """
+        关注/取关用户
+        :param uid: 用户uid
+        :param action: 操作（follow或unfollow）
+        :return: 操作状态
+        """
         if action == 'unfollow':
             result = libhoyolab.Actions.follow(uid)
         else:
@@ -438,6 +479,12 @@ class Apis:
             return {'status': f'err, {result[-1]}'}
 
     def upVote(self, post_id, isCancel):
+        """
+        文章点赞
+        :param post_id: 文章id
+        :param isCancel: 是否取消
+        :return: 操作状态
+        """
         result = libhoyolab.Actions.upvotePost(post_id, isCancel)
         if result[0] == 0:
             return {'status': 'ok'}
@@ -445,6 +492,13 @@ class Apis:
             return {'status': f'err, {result[-1]}'}
 
     def upVoteReply(self, reply_id, post_id, isCancel):
+        """
+        评论点赞
+        :param reply_id: 评论id
+        :param post_id: 文章id
+        :param isCancel: 是否取消
+        :return: 操作状态
+        """
         result = libhoyolab.Actions.upvoteReply(reply_id, post_id, isCancel)
         if result[0] == 0:
             return {'status': 'ok'}
@@ -452,29 +506,40 @@ class Apis:
             return {'status': f'err, {result[-1]}'}
 
     def collectPost(self, post_id, isCancel):
+        """
+        收藏文章
+        :param post_id: 文章id
+        :param isCancel: 是否取消
+        :return: 操作状态
+        """
         result = libhoyolab.Actions.collectPost(post_id, isCancel)
         if result[0] == 0:
             return {'status': 'ok'}
         else:
             return {'status': f'err, {result[-1]}'}
 
-    def maxWindow(self):
-        window.toggle_fullscreen()
-        return {'status': 'ok'}
-
 
 if __name__ == '__main__':
     apis = Apis()
-    if platform.system() == 'Windows':
+    if platform.system() == 'Windows' or debug:
         try:
-            window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis,
-                                           focus=True)
-            webview.start(gui="edgechromium", user_agent=appUserAgent, debug=debug, localization=localization)
+            window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis, focus=True)
+            if not debug:
+                webview.start(gui="edgechromium", user_agent=appUserAgent, localization=localization)
+            else:
+                webview.start(user_agent=appUserAgent, debug=debug, localization=localization, server_args={'debug': debug})
         except KeyError:
             pass
         except KeyboardInterrupt:
             pass
         except webview.util.WebViewException:
-            messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
+            if not debug:
+                messagebox.showerror(title="运行环境错误", message="请检查当前系统环境是否支持 EdgeWebview2")
+                sys.exit(-1)
+            else:
+                messagebox.showerror(title="运行环境错误", message="尝试初始化GUI时出现错误（当前运行于调试模式）")
+                sys.exit(-1)
     else:
-        messagebox.showerror(title="运行环境错误", message="当前应用仅支持在Windows环境下运行")
+        messagebox.showerror(title="运行环境错误",
+                             message="对其他操作系统的支持尚处于测试阶段\n如需使用，请在configs/config.json下将'enableDebug'的值修改为'on'")
+        sys.exit(-1)
