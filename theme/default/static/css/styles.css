@@ -119,7 +119,8 @@ body::-webkit-scrollbar {
     max-width: 350px;
     min-width: 300px;
     height: -webkit-fill-available;
-    background-color: rgba(0, 216, 255, 0.6);
+    /*background-color: rgba(0, 216, 255, 0.6);*/
+    background-color: rgba(134, 133, 133, 0.6);
     backdrop-filter: blur(100px);
     float: left;
     color: #000;
@@ -131,14 +132,21 @@ body::-webkit-scrollbar {
 .search{
     margin: 10px;
 }
-.search input{
+input:not(input[type="checkbox"]){
     border: none;
     border-radius: 10px;
     height: 30px;
 }
+input[type="text"], input[type="password"]{
+    padding: 15px;
+}
+.setting input[type="submit"]{
+    width: 150px;
+    height: 40px;
+    margin: 10px;
+}
 .search input[type="text"]{
     width: 78%;
-    padding: 15px;
 }
 .search input[type="submit"]{
     width: 20%;
@@ -415,6 +423,7 @@ body::-webkit-scrollbar {
 }
 .article .content{
     margin: 5%;
+    padding: 5%;
 }
 .article .content img:not(.emotionIcon){
     border: none;

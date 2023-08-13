@@ -2,7 +2,12 @@
 用户登录
 """
 import json
+import time
+
 import webview
+import requests
+
+from libhoyolab import urls
 
 cookies = ''
 loginPageDestroyed_user = False
@@ -64,7 +69,7 @@ page = """<!DOCTYPE html>
 </html>"""
 
 
-def login():
+def loginByWeb():
     """
     利用pywebview处理用户登录事件并将获取到的login_ticket写入到account.json中
     """
@@ -103,6 +108,7 @@ def login():
                 return {'flag': True}
             else:
                 return {'flag': False}
+
     api = apis()
     loginAccount_user = webview.create_window(title="!!!完成登录操作前请勿关闭该窗口!!!",
                                               url="https://user.mihoyo.com", hidden=True,
@@ -111,3 +117,30 @@ def login():
                                  html=page, minimized=False, confirm_close=True, resizable=False)
     return cookies
 
+
+def loginByPassword(account, password):
+    """
+    使用账号密码进行登录
+    :param account: 账号
+    :param password: 密码
+    :return:
+    """
+    session = requests.session()
+    resp_mmt = session.get(urls.mmt_pwd.format(int(time.time() * 1000), account, int(time.time() * 1000))).json()
+    if 'risk_type' in resp_mmt['data']:
+        return {'msg': '当前账号无法直接使用该方式登录', 'token': ''}
+    else:
+        mmt_key = resp_mmt['data']['mmt_data']['mmt_key']
+        datas = {
+            'account': account,
+            'password': password,
+            'is_crypto': 'false',
+            'mmt_key': mmt_key,
+            'source': 'user.mihoyo.com',
+            't': str(int(time.time() * 1000))
+        }
+        resp_login = session.post(urls.login, data=datas).json()
+        if resp_login['data']['msg'] == '成功':
+            return {'msg': resp_login['data']['msg'], 'token': resp_login['data']['account_info']['weblogin_token']}
+        else:
+            return {'msg': resp_login['data']['msg'], 'token': ''}

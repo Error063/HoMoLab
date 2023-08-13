@@ -1,4 +1,4 @@
-.main *, .replies *{
+.main *:not(select, input), .replies *:not(select, input){
     color: #f3f3f3;
 }
 body:not(.commentBody){
@@ -8,9 +8,10 @@ body:not(.commentBody){
     /*filter: brightness(1);*/
 }
 .menu{
-    background-color: rgba(0, 97, 115, 0.5);
+    /*background-color: rgba(0, 97, 115, 0.5);*/
+    background-color: rgba(80, 80, 80, 0.5);
 }
-input[type="text"]{
+input[type="text"],input[type="password"]{
     background-color: #cacaca;
     color: black;
 }
@@ -20,9 +21,11 @@ input[type="submit"]{
 .area{
     background-color: #0090cf;
 }
-/*iframe{*/
-/*    background-color: black;*/
-/*}*/
+.content .ql-editor{
+    background-color: rgba(175, 158, 128, 0.7);
+    padding: 5%;
+    border-radius: 10px;
+}
 button{
     background-color: #606060;
 }

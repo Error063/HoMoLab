@@ -11,7 +11,7 @@
             <p>
             <h3>账户：{{ account.getNickname() }}</h3>
             <div class="buttons">
-                <button onclick="accountHandler()"
+                <button onclick="{{ 'accountHandler()' if account.isLogin else 'hideAndRedirect("/login")' }}"
                         class="accountHandler"
                         style="{{ 'color:red;' if account.isLogin else '' }}">
                     {{ '退出登录' if account.isLogin else '登录' }}

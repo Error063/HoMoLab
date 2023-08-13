@@ -1,5 +1,5 @@
 import hashlib
-import os.path
+import os
 import pprint
 import string
 import time
@@ -11,7 +11,7 @@ import json
 import requests
 import logging
 
-from libhoyolab import threadRender, urls
+from libhoyolab import threadRender, urls, accountLogin
 
 logger = logging.getLogger('libhoyolab')
 
@@ -87,13 +87,13 @@ def DS1() -> str:
 
 
 def DS2(query='', body='', salt='4x') -> str:
-    '''
+    """
     生成米游社DS2
     :param query: 查询参数（当算法为Ds2，请求为get时使用）
     :param body: post内容（当算法为Ds2，请求为post时使用）
     :param salt: 指定算法所需的salt（当算法为Ds2时使用）
     :return: str
-    '''
+    """
     salt = Salt_4X if salt.lower() == '4x' else Salt_6X
     new_body = dict()
     t = int(time.time())
@@ -102,14 +102,10 @@ def DS2(query='', body='', salt='4x') -> str:
     if body:
         if type(body) is str:
             body = json.loads(body)
-            for key in sorted(json.loads(body)):
-                new_body[key] = body[key]
-            body = json.dumps(new_body)
-        elif type(body) is dict:
-            for key in sorted(body):
-                new_body[key] = body[key]
-            body = json.dumps(new_body)
-            main = f"salt={salt}&t={t}&r={r}&b={body}"
+        for key in sorted(body):
+            new_body[key] = body[key]
+        body = json.dumps(new_body)
+        main = f"salt={salt}&t={t}&r={r}&b={body}"
     elif query:
         query = '&'.join(sorted(query.split('&')))
         main = f"salt={salt}&t={t}&r={r}&q={query}"
@@ -181,28 +177,31 @@ def articleSet(raw_articles: list, method: str = 'normal') -> list:
     """
     articles = list()
     for articleInfo in raw_articles:
-        article = dict()
-        if method == 'history':
-            articleInfo = articleInfo['post']
-        article['post_id'] = articleInfo['post']['post_id']
-        article['title'] = articleInfo['post']['subject']
-        article['describe'] = articleInfo['post']['content'][:50] + str(
-            "..." if len(articleInfo['post']['content']) > 50 else '')
         try:
-            article['cover'] = articleInfo['post']['images'][0] if articleInfo['post']['cover'] == "" else \
-                articleInfo['post']['cover']
-        except:
-            article['cover'] = ''
-        article['authorAvatar'] = articleInfo['user']['avatar_url']
-        article['uid'] = int(articleInfo['user']['uid'])
-        article['authorName'] = articleInfo['user']['nickname']
-        describe = articleInfo['user']['certification']['label'] if len(
-            articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
-                                                                    :15] + '...' if len(
-            articleInfo['user']['introduce']) > 15 else ''
-        article['authorDescribe'] = describe
-        article['type'] = articleInfo['post']['view_type']
-        articles.append(article)
+            article = dict()
+            if method == 'history':
+                articleInfo = articleInfo['post']
+            article['post_id'] = articleInfo['post']['post_id']
+            article['title'] = articleInfo['post']['subject']
+            article['describe'] = articleInfo['post']['content'][:50] + str(
+                "..." if len(articleInfo['post']['content']) > 50 else '')
+            try:
+                article['cover'] = articleInfo['post']['images'][0] if articleInfo['post']['cover'] == "" else \
+                    articleInfo['post']['cover']
+            except:
+                article['cover'] = ''
+            article['authorAvatar'] = articleInfo['user']['avatar_url']
+            article['uid'] = int(articleInfo['user']['uid'])
+            article['authorName'] = articleInfo['user']['nickname']
+            describe = articleInfo['user']['certification']['label'] if len(
+                articleInfo['user']['certification']['label']) > 0 else articleInfo['user']['introduce'][
+                                                                        :15] + '...' if len(
+                articleInfo['user']['introduce']) > 15 else ''
+            article['authorDescribe'] = describe
+            article['type'] = articleInfo['post']['view_type']
+            articles.append(article)
+        except Exception:
+            continue
 
     return articles
 
@@ -242,7 +241,7 @@ def connectApi(apiUrl: str, method='get', data=None, headers=None) -> requests.R
     return resp
 
 
-def login():
+def login(methods='web', mysAccount='', mysPasswd=''):
     """
     用户登录操作
     :return:
@@ -250,14 +249,21 @@ def login():
     global cookie, login_ticket, stuid, stoken, account
     logger.info("=" * 20)
     logger.info("logining...")
-    with open(account_file) as f:
-        login_ticket = json.load(f)['login_ticket']
+    if methods == 'web':
+        with open(account_file) as f:
+            login_ticket = json.load(f)['login_ticket']
+    elif methods == 'pwd':
+        result = accountLogin.loginByPassword(mysAccount, mysPasswd)
+        if result['msg'] != '成功':
+            logger.error(f'failed, {result["msg"]}')
+            return result["msg"]
+        login_ticket = result['token']
     resp = session.get(urls.Cookie_url.format(login_ticket))
-    data = json.loads(resp.text.encode('utf-8'))
+    data = resp.json()
     if "成功" in data["data"]["msg"]:
         stuid = data["data"]["cookie_info"]["account_id"]
         resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
-        data = json.loads(resp.text.encode('utf-8'))
+        data = resp.json()
         stoken = data["data"]["list"][0]["token"]
         account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
         with open(account_file, mode='w') as f:
@@ -302,6 +308,9 @@ class Article:
         headers = headerGenerate(app='web')
         resp = connectApi(urls.getPostFull.format(str(post_id)), headers=headers)
         self.result = resp.json()
+
+    def getReleasedTime(self):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(self.result['data']['post']['post']['created_at'])))
 
     def getContent(self) -> str:
         """
@@ -723,6 +732,7 @@ class Actions:
         logger.info("getting user's history")
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.history.format(str(offset)), headers=header).json()['data']
+        # print(resp)
         return articleSet(resp['list'], method='history'), resp['is_last']
 
     @staticmethod

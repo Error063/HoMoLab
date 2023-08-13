@@ -11,6 +11,7 @@
                 </div>
             </div>
             <h1 class="title fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
+            <p style="text-align: center">发布时间：{{ thread.getReleasedTime() }}</p>
             <div class="content fix">
 {#                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>#}
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}

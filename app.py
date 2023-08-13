@@ -33,7 +33,7 @@ gameDict = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学�
             'dby': ['大别野', '5'],
             'sr': ['崩坏：星穹铁道', '6'], 'none': ['空', '-1'], 'zzz': ['绝区零', '8']}
 actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "activity": "活动", "information": "资讯",
-           "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误"}
+           "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误", "login": "登录"}
 localization = {'global.quitConfirmation': '确定关闭?'}
 
 if not os.path.exists(logs_dir):
@@ -72,7 +72,6 @@ if not (os.path.exists('./resources')):
     sys.exit(-1)
 
 openLoad = nowPage = config['openLoad']
-# debug = True if config['enableDebug'] == 'on' else False
 logging.info(f"debug mode: {config['enableDebug']}")
 theme = 'default'
 if 'theme' in config:
@@ -92,6 +91,14 @@ firstAccess = True
 load = True
 
 app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
+
+
+def after_request(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
+app.after_request(after_request)
 
 
 def systemColorSet():
@@ -123,8 +130,11 @@ def getWallpaper():
     if config['usingSystemWallpaper'] == 'on' and platform.system() == 'Windows':
         # return winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\Desktop"), 'WallPaper')[0]
         return os.path.expanduser('~') + r'\AppData\Roaming\Microsoft\Windows\Themes\TranscodedWallpaper'
+    elif config['usingSystemWallpaper'] == 'on' and platform.system() == 'Linux':
+        return 'image-api'
     else:
         return './resources/default.png'
+
 
 def LoadPage(func):
     """
@@ -147,7 +157,8 @@ def LoadPage(func):
         else:
             if config['enableDebug'] == 'on':
                 account = libhoyolab.User()
-                resp = make_response(func(*args, **kwargs))
+                page = func(*args, **kwargs)
+                resp = make_response(page)
                 resp.set_cookie('token', token)
                 if firstAccess:
                     firstAccess = False
@@ -155,7 +166,8 @@ def LoadPage(func):
             else:
                 try:
                     account = libhoyolab.User()
-                    resp = make_response(func(*args, **kwargs))
+                    page = func(*args, **kwargs)
+                    resp = make_response(page)
                     resp.set_cookie('token', token)
                     if firstAccess:
                         firstAccess = False
@@ -166,8 +178,7 @@ def LoadPage(func):
                     return f'<h1 style="color: red;text-align: center">尝试加载 {e} 时出现错误！</h1>'
                 except Exception as e:
                     logging.info(f"Error! {e}")
-                    return render_template('error.html', select='error', viewActions=actions), 500
-
+                    return render_template('error.html', select='error', viewActions=actions, account=account), 500
     return wrapper
 
 
@@ -212,10 +223,15 @@ def wallpaper():
     返回壁纸
     :return:
     """
+    wallpaper_path = getWallpaper()
     try:
-        return send_file(getWallpaper())
+        if wallpaper_path != 'image-api':
+            return send_file(wallpaper_path)
+        else:
+            return redirect("https://t.mwm.moe/pc/")
     except FileNotFoundError:
-        return send_file('./resources/default.png')
+        # return send_file('./resources/default.png')
+        return redirect("https://t.mwm.moe/pc/")
 
 
 @app.route('/resources')
@@ -366,8 +382,20 @@ def setting():
             logging.info(fp.read())
         load = True
         window.destroy()
-        # return render_template('settings.html', select='setting', game=nowPage, viewActions=actions, isSaved=True,
-        #                        config=config, account=account, version=version)
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    if not account.isLogin:
+        if request.method == 'GET':
+            return render_template('login.html', select='login', game=nowPage, viewActions=actions, config=config, account=account, platform=platform.system())
+        else:
+            mysAccount = request.form.get('account')
+            mysPassword = request.form.get('password')
+            libhoyolab.login(methods='pwd', mysAccount=mysAccount, mysPasswd=mysPassword)
+            return redirect('/')
+    else:
+        return redirect('/')
 
 
 @app.route('/user')
@@ -391,7 +419,7 @@ def history():
     """
     page = int(request.args.get('page')) if 'page' in request.args else 1
     offset = ((page - 1) * 20) + 1
-    history_posts = libhoyolab.Actions().getHistory(offset)
+    history_posts = libhoyolab.Actions.getHistory(offset)
     return render_template('posts.html', articles=history_posts[0], select='history', game=nowPage,
                            page=page, account=account, isLast=history_posts[1], viewActions=actions)
 
@@ -405,6 +433,18 @@ def index():
     """
     window.set_title(f'HoMoLab - {gameDict[nowPage][0]}')
     return redirect(f'/{nowPage}')
+
+
+@app.route('/<game>/vote')
+def vote(game):
+    # /ys/vote?id=1666798681485819904&uid=271413785
+    vote_id = request.args.get('id')
+    return redirect(f"https://www.miyoushe.com/{game}/vote?id={vote_id}")
+
+
+@app.errorhandler(500)
+def errorPage(e):
+    return render_template('error.html', select='error', viewActions=actions, account=account), 500
 
 
 class Apis:
@@ -426,7 +466,7 @@ class Apis:
                 libhoyolab.logout()
                 account = libhoyolab.User()
         else:
-            accountLogin.login()
+            accountLogin.loginByWeb()
             if window.create_confirmation_dialog("登录", "若已在弹出的窗口中完成登录，请点击确定按钮"):
                 libhoyolab.login()
                 account = libhoyolab.User()
@@ -555,14 +595,15 @@ if __name__ == '__main__':
     if platform.system() == 'Windows' or config['enableDebug'] == 'on':
         try:
             while load:
-                window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000, js_api=apis,
+                window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000,
+                                               js_api=apis,
                                                focus=True)
                 load = False
                 if not config['enableDebug'] == 'on':
-                    webview.start(gui="edgehtml", user_agent=appUserAgent, localization=localization)
+                    webview.start(gui="edgechromium", user_agent=appUserAgent, localization=localization)
                 else:
-                    webview.start(user_agent=appUserAgent, debug=config['enableDebug'] == 'on', localization=localization,
-                                  server_args={'debug': config['enableDebug'] == 'on'})
+                    webview.start(user_agent=appUserAgent, debug=config['enableDebug'] == 'on',
+                                  localization=localization)
                 del window
                 time.sleep(1)
         except KeyError:

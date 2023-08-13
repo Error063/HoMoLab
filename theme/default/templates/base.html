@@ -39,9 +39,11 @@
             </div>
         </div>
         <div class="userControllers">
-            <a onclick="hideAndRedirect('/history')">
-                <div class="history controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
-            </a>
+            {% if account.isLogin %}
+                <a onclick="hideAndRedirect('/history')">
+                    <div class="history controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
+                </a>
+            {% endif %}
             <a onclick="hideAndRedirect('/setting')">
                 <div class="settingIcon controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
