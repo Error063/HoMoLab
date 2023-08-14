@@ -2,16 +2,17 @@
 用户登录
 """
 import json
+import os
 import time
 
 import webview
 import requests
 
-from libhoyolab import urls
+from homo.libhoyolab import urls
 
 cookies = ''
 loginPageDestroyed_user = False
-account_dir = './configs/account.json'
+account_dir = os.path.join(os.getcwd(), 'configs', 'account.json')
 
 page = """<!DOCTYPE html>
 <html lang="en">

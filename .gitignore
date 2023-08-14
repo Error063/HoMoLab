@@ -1,12 +1,1 @@
-/tests/
-/tests/*
-/playground/
-/playground/*
-/dist/*
 /build/
-/build/app/
-/build/app/*
-/logs/
-/debugs/
-/configs/account.json
-/configs/

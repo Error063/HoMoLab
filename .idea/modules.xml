@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/HoMoLab.iml" filepath="$PROJECT_DIR$/.idea/HoMoLab.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/homolab-pack.iml" filepath="$PROJECT_DIR$/.idea/homolab-pack.iml" />
     </modules>
   </component>
 </project>

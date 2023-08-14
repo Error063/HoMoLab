@@ -11,7 +11,7 @@ import json
 import requests
 import logging
 
-from libhoyolab import threadRender, urls, accountLogin
+from homo.libhoyolab import threadRender, urls, accountLogin
 
 logger = logging.getLogger('libhoyolab')
 
@@ -27,9 +27,10 @@ Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
 mysVersion = '2.55.1'
 mysClient_type = '2'  # 1:ios 2:Android
 
-config_dir = './configs'
-config_file = f'{config_dir}/config.json'
-account_file = f'{config_dir}/account.json'
+config_dir = os.path.join(os.getcwd(), 'configs')
+account_file = os.path.join(config_dir, 'account.json')
+config_file = os.path.join(config_dir, 'config.json')
+
 
 if not os.path.exists(config_dir):
     os.mkdir(config_dir)

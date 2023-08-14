@@ -1,0 +1,44 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='HoMoLab',
+    version='0.9.5',
+    description='基于Pywebview的米游社PC客户端实现',
+    author='Error063',
+    author_email='admin@error063.work',
+    url='https://homolab.error063.work/',
+    license='MIT',
+    keywords='HoYoLab',
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=True,
+    entry_points={
+        'console_scripts': [  # 命令的入口
+            'homolab=homo.homolab.__main__:enter'
+        ]
+    },
+    install_requires=['blinker==1.6.2',
+                      'bottle==0.12.25',
+                      'certifi==2023.5.7',
+                      'cffi==1.15.1',
+                      'charset-normalizer==3.2.0',
+                      'click==8.1.4',
+                      'clr-loader==0.2.5',
+                      'colorama==0.4.6',
+                      'dominate==2.8.0',
+                      'Flask==2.3.2',
+                      'idna==3.4',
+                      'itsdangerous==2.1.2',
+                      'Jinja2==3.1.2',
+                      'MarkupSafe==2.1.3',
+                      'proxy-tools==0.1.0',
+                      'pycparser==2.21',
+                      'pythonnet==3.0.1',
+                      'pywebview==4.2.2',
+                      'requests==2.31.0',
+                      'typing_extensions==4.7.1',
+                      'ua-parser==0.18.0',
+                      'urllib3==2.0.3',
+                      'user-agents==2.2.0',
+                      'Werkzeug==2.3.6']
+)

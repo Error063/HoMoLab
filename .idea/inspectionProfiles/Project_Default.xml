@@ -1,8 +1,20 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="CssUnknownProperty" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myCustomPropertiesEnabled" value="true" />
+      <option name="myIgnoreVendorSpecificProperties" value="false" />
+      <option name="myCustomPropertiesList">
+        <value>
+          <list size="1">
+            <item index="0" class="java.lang.String" itemvalue="transform" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
     <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <Languages>
+        <language minSize="12" name="Style Sheets" />
         <language minSize="166" name="Python" />
       </Languages>
     </inspection_tool>
@@ -52,6 +64,7 @@
         <list>
           <option value="E501" />
           <option value="W292" />
+          <option value="E251" />
         </list>
       </option>
     </inspection_tool>
@@ -71,6 +84,9 @@
           <option value="requests.*" />
         </list>
       </option>
+    </inspection_tool>
+    <inspection_tool class="SqlResolveInspection" enabled="true" level="ERROR" enabled_by_default="true">
+      <option name="suppressForPossibleStringLiterals" value="true" />
     </inspection_tool>
   </profile>
 </component>

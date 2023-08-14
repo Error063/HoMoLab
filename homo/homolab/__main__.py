@@ -17,7 +17,7 @@ from flask import Flask, render_template, request, redirect, make_response, send
 import json
 import webview
 
-from libhoyolab import libhoyolab, accountLogin
+from homo.libhoyolab import libhoyolab, accountLogin
 
 if platform.system() == 'Windows':
     import winreg
@@ -25,10 +25,13 @@ if platform.system() == 'Windows':
 init_time = str(int(time.time()))
 
 version = '0.9.5'
-appicon_dir = './resources/appicon.ico'
-config_dir = './configs'
-config_file = f'{config_dir}/config.json'
-logs_dir = './logs'
+app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+run_dir = os.path.join(os.getcwd(), 'homolab-dir')
+appicon_dir = os.path.join(app_dir, 'resources', 'appicon.ico')
+resources_dir = os.path.join(app_dir, 'resources')
+config_dir = os.path.join(run_dir, 'configs')
+config_file = os.path.join(config_dir, 'config.json')
+logs_dir = os.path.join(run_dir, 'logs')
 gameDict = {'bh3': ['崩坏3', '1'], 'ys': ['原神', '2'], 'bh2': ['崩坏学园2', '3'], 'wd': ['未定事件簿', '4'],
             'dby': ['大别野', '5'],
             'sr': ['崩坏：星穹铁道', '6'], 'none': ['空', '-1'], 'zzz': ['绝区零', '8']}
@@ -36,10 +39,14 @@ actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "ac
            "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误", "login": "登录"}
 localization = {'global.quitConfirmation': '确定关闭?'}
 
+
+if not os.path.exists(run_dir):
+    os.mkdir(run_dir)
+
 if not os.path.exists(logs_dir):
     os.mkdir(logs_dir)
 
-logging.basicConfig(filename=f"{logs_dir}/app-{init_time}.log",
+logging.basicConfig(filename=os.path.join(logs_dir, f"app-{init_time}.log"),
                     filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto",
@@ -66,7 +73,7 @@ if platform.system() == 'Windows':
     ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
     root.tk.call('tk', 'scaling', ScaleFactor / 75)
 
-if not (os.path.exists('./resources')):
+if not (os.path.exists(resources_dir)):
     logging.error('resource load failed')
     messagebox.showerror(title="资源文件加载失败", message=f"尝试加载资源文件时出现错误！")
     sys.exit(-1)
@@ -76,21 +83,25 @@ logging.info(f"debug mode: {config['enableDebug']}")
 theme = 'default'
 if 'theme' in config:
     theme = config['theme']
-if not (os.path.exists(f'./theme/{theme}/templates') and os.path.exists(f'./theme/{theme}/static')):
+if not (os.path.exists(os.path.join(app_dir, 'theme', theme, 'templates')) and os.path.exists(
+        os.path.join(app_dir, 'theme', theme, 'static'))):
     logging.error(f'load custom theme {theme} failed')
     theme = 'default'
     messagebox.showwarning(title="用户界面加载失败", message=f"尝试加载 {theme} 时出现错误！已切换到默认主题。")
-    if not (os.path.exists(f'./theme/{theme}/templates') and os.path.exists(f'./theme/{theme}/static')):
+    if not (os.path.exists(os.path.join(app_dir, 'theme', theme, 'templates')) and os.path.exists(
+            os.path.join(app_dir, 'theme', theme, 'static'))):
         logging.error('gui load failed')
         messagebox.showerror(title="用户界面加载失败", message=f"尝试加载 {theme} 时出现错误！")
         sys.exit(-1)
 
+window = None
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
 load = True
 
-app = Flask(__name__, template_folder=f'./theme/{theme}/templates', static_folder=f'./theme/{theme}/static')
+app = Flask(__name__, template_folder=os.path.join(app_dir, 'theme', theme, 'templates'),
+            static_folder=os.path.join(app_dir, 'theme', theme, 'static'))
 
 
 def after_request(resp):
@@ -133,7 +144,7 @@ def getWallpaper():
     elif config['usingSystemWallpaper'] == 'on' and platform.system() == 'Linux':
         return 'image-api'
     else:
-        return './resources/default.png'
+        return os.path.join(resources_dir, 'default.png')
 
 
 def LoadPage(func):
@@ -179,6 +190,7 @@ def LoadPage(func):
                 except Exception as e:
                     logging.info(f"Error! {e}")
                     return render_template('error.html', select='error', viewActions=actions, account=account), 500
+
     return wrapper
 
 
@@ -206,7 +218,7 @@ def personal():
         if config['colorMode'] == 'auto':
             css += '@media (prefers-color-scheme: dark) {\n'
         try:
-            with open(f'./theme/{theme}/static/css/darkmode.css') as f:
+            with open(os.path.join(app_dir, 'theme', theme, 'static', 'css', 'darkmode.css')) as f:
                 css += f.read()
         except FileNotFoundError:
             css += ''
@@ -243,27 +255,27 @@ def resources():
     if 'logo' in request.args:
         logo = request.args.get('logo')
         if logo in gameDict.keys():
-            return send_file(f'./resources/logos/{logo}.jpg')
+            return send_file(os.path.join(resources_dir, 'logos', f'{logo}.jpg'))
         if logo == 'appicon':
-            return send_file(f'./resources/logos/appicon.png')
+            return send_file(os.path.join(resources_dir, 'logos', 'appicon.png'))
         else:
             return '404 File not Found!', 404
     elif 'js' in request.args:
-        return send_file('./resources/js/main.js')
+        return send_file(os.path.join(resources_dir, 'js', 'main.js'))
     elif 'css' in request.args:
         match request.args.get('css'):
             case 'hoyolab':
-                return send_file('./resources/css/hoyolabstyles.css')
+                return send_file(os.path.join(resources_dir, 'css', 'hoyolabstyles.css'))
             case _:
                 return '404 File not Found!', 404
     elif 'font' in request.args:
         match request.args.get('font'):
             case '34ec64a':
-                return send_file('./resources/font/iconfont.34ec64a.woff')
+                return send_file(os.path.join(resources_dir, 'font', 'iconfont.34ec64a.woff'))
             case '33542c4':
-                return send_file('./resources/font/iconfont.33542c4.ttf')
+                return send_file(os.path.join(resources_dir, 'font', 'iconfont.33542c4.ttf'))
             case '72957bf':
-                return send_file('./resources/font/iconfont.72957bf.woff2')
+                return send_file(os.path.join(resources_dir, 'font', 'iconfont.72957bf.woff2'))
             case _:
                 return '404 File not Found!', 404
     else:
@@ -377,7 +389,7 @@ def setting():
         for k in settings:
             config[k] = settings[k]
         openLoad = config['openLoad']
-        with open('configs/config.json', mode='w+') as fp:
+        with open(config_file, mode='w+') as fp:
             json.dump(config, fp)
             logging.info(fp.read())
         load = True
@@ -388,7 +400,8 @@ def setting():
 def login():
     if not account.isLogin:
         if request.method == 'GET':
-            return render_template('login.html', select='login', game=nowPage, viewActions=actions, config=config, account=account, platform=platform.system())
+            return render_template('login.html', select='login', game=nowPage, viewActions=actions, config=config,
+                                   account=account, platform=platform.system())
         else:
             mysAccount = request.form.get('account')
             mysPassword = request.form.get('password')
@@ -590,7 +603,8 @@ class Apis:
             return {'status': f'err, {result[-1]}'}
 
 
-if __name__ == '__main__':
+def enter():
+    global load, window
     apis = Apis()
     if platform.system() == 'Windows' or config['enableDebug'] == 'on':
         try:
@@ -621,3 +635,7 @@ if __name__ == '__main__':
         messagebox.showerror(title="运行环境错误",
                              message="对其他操作系统的支持尚处于测试阶段\n如需使用，请手动修改configs/config.json中的'enableDebug'的值修改为'on'")
         sys.exit(-1)
+
+
+if __name__ == '__main__':
+    enter()

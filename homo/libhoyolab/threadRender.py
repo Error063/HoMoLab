@@ -4,7 +4,7 @@
 import json
 import re
 
-from libhoyolab import replace_regex
+from homo.libhoyolab import replace_regex
 
 
 def replaceAllFromDelta(contents: list | str, emotionDict: dict):
