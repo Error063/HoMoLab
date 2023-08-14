@@ -3,6 +3,7 @@
 """
 import json
 import os
+import pathlib
 import time
 
 import webview
@@ -12,7 +13,10 @@ from homo.libhoyolab import urls
 
 cookies = ''
 loginPageDestroyed_user = False
-account_dir = os.path.join(os.getcwd(), 'configs', 'account.json')
+home_dir = str(pathlib.Path.home())
+run_dir = os.path.join(home_dir, 'homolab-dir')
+config_dir = os.path.join(run_dir, 'configs')
+account_file = os.path.join(config_dir, 'account.json')
 
 page = """<!DOCTYPE html>
 <html lang="en">
@@ -101,9 +105,9 @@ def loginByWeb():
                     if 'login_ticket' in c:
                         cookies = c
                         break
-                with open(account_dir, mode='r') as fp:
+                with open(account_file, mode='r') as fp:
                     account = json.load(fp)
-                with open(account_dir, mode='w+') as fp:
+                with open(account_file, mode='w+') as fp:
                     account['login_ticket'] = cookies.split('=')[-1]
                     json.dump(account, fp)
                 return {'flag': True}

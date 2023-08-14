@@ -1,2 +1,2 @@
 @echo off
-pyinstaller --clean --noconfirm --onedir --windowed --icon "./homo/appicon.ico" --add-data "./theme;theme/" --add-data "./homo/resources;resources/" -n "app" "./homo/homolab/__main__.py"
+pyinstaller --clean --noconfirm --onedir --windowed --icon "./homo/resources/appicon.ico" --add-data "./homo/theme;theme/" --add-data "./homo/resources;resources/" -n "app" "./homo/lab/__main__.py"

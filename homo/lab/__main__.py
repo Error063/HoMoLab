@@ -4,6 +4,7 @@
 Licensed under GPL 3 license
 """
 import os
+import pathlib
 import sys
 import time
 import platform
@@ -24,9 +25,10 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
-version = '0.9.5'
+version = '0.9.5.1'
+home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-run_dir = os.path.join(os.getcwd(), 'homolab-dir')
+run_dir = os.path.join(home_dir, 'homolab-dir')
 appicon_dir = os.path.join(app_dir, 'resources', 'appicon.ico')
 resources_dir = os.path.join(app_dir, 'resources')
 config_dir = os.path.join(run_dir, 'configs')

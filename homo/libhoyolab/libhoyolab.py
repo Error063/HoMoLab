@@ -1,5 +1,6 @@
 import hashlib
 import os
+import pathlib
 import pprint
 import string
 import time
@@ -27,7 +28,8 @@ Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
 mysVersion = '2.55.1'
 mysClient_type = '2'  # 1:ios 2:Android
 
-run_dir = os.path.join(os.getcwd(), 'homolab-dir')
+home_dir = str(pathlib.Path.home())
+run_dir = os.path.join(home_dir, 'homolab-dir')
 config_dir = os.path.join(run_dir, 'configs')
 account_file = os.path.join(config_dir, 'account.json')
 config_file = os.path.join(config_dir, 'config.json')
