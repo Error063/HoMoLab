@@ -27,10 +27,14 @@ Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
 mysVersion = '2.55.1'
 mysClient_type = '2'  # 1:ios 2:Android
 
-config_dir = os.path.join(os.getcwd(), 'configs')
+run_dir = os.path.join(os.getcwd(), 'homolab-dir')
+config_dir = os.path.join(run_dir, 'configs')
 account_file = os.path.join(config_dir, 'account.json')
 config_file = os.path.join(config_dir, 'config.json')
 
+
+if not os.path.exists(run_dir):
+    os.mkdir(run_dir)
 
 if not os.path.exists(config_dir):
     os.mkdir(config_dir)

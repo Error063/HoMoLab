@@ -1,1 +1,1 @@
-python setup.py bdist_wheel
+python build_wheel.py

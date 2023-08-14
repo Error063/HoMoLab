@@ -602,6 +602,9 @@ class Apis:
         else:
             return {'status': f'err, {result[-1]}'}
 
+    def openAppConfig(self):
+        os.startfile(run_dir)
+
 
 def enter():
     global load, window

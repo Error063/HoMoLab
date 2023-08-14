@@ -1,2 +1,3 @@
-include resources/*
-include theme/*
+include homo/resources/css/hoyolabstyles.css
+include homo/resources/font/iconfont.34ec64a.woff
+include homo/resources/font/iconfont.33542c4.ttf

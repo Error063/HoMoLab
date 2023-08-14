@@ -108,6 +108,11 @@ function collectPost(post_id, isCancel) {
         console.info(status['status'])
     })
 }
+function openAppConfig() {
+    pywebview.api.openAppConfig().then(function () {
+
+    })
+}
 window.onblur = function() {
     if (!document.hasFocus()){
         let header = document.getElementsByClassName("headers")[0]

@@ -1,22 +1,25 @@
 from setuptools import setup, find_packages
+from homo.lab.__main__ import version
 
 setup(
     name='HoMoLab',
-    version='0.9.5',
+    version=version,
     description='基于Pywebview的米游社PC客户端实现',
     author='Error063',
     author_email='admin@error063.work',
     url='https://homolab.error063.work/',
-    license='MIT',
-    keywords='HoYoLab',
+    license='GPL3',
+    keywords=['HoYoLab', '米游社'],
     packages=find_packages(),
     include_package_data=True,
     zip_safe=True,
+    python_requires='~=3.10',
     entry_points={
-        'console_scripts': [  # 命令的入口
-            'homolab=homo.homolab.__main__:enter'
+        'console_scripts': [
+            'homolab=homo.lab.__main__:enter'
         ]
     },
+    package_data={'resources': ['appicon.ico']},
     install_requires=['blinker==1.6.2',
                       'bottle==0.12.25',
                       'certifi==2023.5.7',
