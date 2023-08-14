@@ -36,6 +36,14 @@
 
 ---
 
+## 安装及使用
+
+1. 安装[Python](https://www.python.org/downloads)和pip
+2. 命令行运行 `pip install HoMoLab`
+3. 命令行运行 `python -m homo.lab` (Linux则为`python3 -m homo.lab`)
+
+---
+
 ## 声明
 
 1. 根据上游项目的协议要求，本项目遵守GPL3协议。
