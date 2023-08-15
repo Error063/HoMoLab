@@ -3,7 +3,7 @@ import zipfile
 from homo.lab.__main__ import version
 
 os.system('python setup.py bdist_wheel')
-print('first build wheel finished, repacking resources...')
+print('first build wheel finished, packing resources to wheel...')
 dir_list = os.listdir('dist')
 file_name = ''
 for file in dir_list:
@@ -18,5 +18,5 @@ with zipfile.ZipFile(file_path, mode='a') as f:
     for i in os.walk(os.path.join('.', 'homo', 'theme')):
         for n in i[2]:
             f.write(''.join((i[0], '\\', n)))
-print('repack wheel finished, uploading to pypi')
+print('pack wheel finished, uploading to pypi')
 os.system(f'twine upload ./dist/{file_name}')

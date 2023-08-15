@@ -62,7 +62,7 @@ body::-webkit-scrollbar {
     background-size: cover;
 }
 .headers .reload{
-    background: none no-repeat -16px 0;
+    background: none no-repeat -15px 0;
     background-size: cover;
 }
 .headers .back {

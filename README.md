@@ -39,8 +39,9 @@
 ## 安装及使用
 
 1. 安装[Python](https://www.python.org/downloads)和pip
-2. 命令行运行 `pip install HoMoLab`
-3. 命令行运行 `python -m homo.lab` (Linux则为`python3 -m homo.lab`)
+2. 命令行运行 `pip install HoMoLab` (Linux则为`pip3 install HoMoLab`)
+
+启动：命令行运行 `python -m homo.lab` (Linux则为`python3 -m homo.lab`)
 
 ---
 
@@ -49,6 +50,8 @@
 1. 根据上游项目的协议要求，本项目遵守GPL3协议。
 
 2. 由于本项目的特殊性，可能随时停止开源或删档。
+
+3. 为了实现用户登录功能，本程序会在用户目录下存储用户登录凭据，您应当妥善保存该凭据。任何因为您的不当操作而导致登录凭据泄露，本程序不负任何责任。
 
 ---
 
@@ -61,9 +64,16 @@
 
 ## 系统要求
 
-任意支持Python 3.10及以上Python版本和GUI的操作系统并且使用pip安装项目根目录下的requirements.txt，兼容的渲染引擎可参考[Web engine | pywebview (flowrl.com)](https://pywebview.flowrl.com/guide/renderer.html#gtk-webkit2)
+任意支持Python 3.10及以上Python版本和GUI的操作系统并且使用pip安装项目根目录下的requirements.txt，兼容的渲染引擎可参考[Web engine | pywebview (flowrl.com)](https://pywebview.flowrl.com/guide/renderer.html)
 
 为保证最佳兼容性，建议在Windows 10及其更新操作系统上运行，并且支持[Edge Webview2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2/#download-section)运行环境
+
+
+---
+
+## 已知问题
+
+​	1.由于[pywebview的问题](https://pywebview.flowrl.com/guide/renderer.html#known-issues-and-limitations)，在Linux中，渲染引擎为GTK Webkit2时，部分按钮无法正常工作
 
 ---
 

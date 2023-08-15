@@ -22,7 +22,7 @@ urllib3.disable_warnings()
 # Salt_K2 = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'  # 米游社讨论区专用salt
 Salt_K2 = 'F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa'  # 米游社签到salt
 Salt_LK2 = 'xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA'  # 米游社讨论区专用salt
-Salt_4X = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs	'
+Salt_4X = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'
 Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
 # mysVersion = "2.38.1"  # 米游社版本
 mysVersion = '2.55.1'
@@ -45,15 +45,18 @@ if os.path.exists(account_file):
     with open(account_file) as f:
         account = json.load(f)
 else:
-    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
+    account = {"isLogin": False, "login_ticket": '', "stuid": '', "stoken": '', "ltoken": '', "ltuid": '', 'cookie_token': ''}
     with open(account_file, mode='w') as f:
         json.dump(account, f)
 
 _USERAGENT = f'Mozilla/5.0 (Linux; Android 12; vivo-s7 Build/RKQ1.211119.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/105.0.5195.79 Mobile Safari/537.36 miHoYoBBS/{mysVersion}'
-login_ticket = account["login_ticket"]
-stuid = account["stuid"]
-stoken = account["stoken"]
-cookie = f'login_ticket={login_ticket}'
+login_ticket = account["login_ticket"] if 'login_ticket' in account else ''
+stuid = account["stuid"] if 'stuid' in account else ''
+stoken = account["stoken"] if 'stoken' in account else ''
+ltuid = account["ltuid"] if 'ltuid' in account else ''
+ltoken = account["ltoken"] if 'ltoken' in account else ''
+cookie_token = account["cookie_token"] if 'cookie_token' in account else ''
+cookie = f'login_ticket={login_ticket};stuid={stuid};stoken={stoken};ltuid={ltuid};stoken={ltoken};cookie_token={cookie_token}'
 
 newsType = {'announce': '1', 'activity': '2', 'information': '3'}
 gamesById = ['bh3', 'ys', 'bh2', 'wd', 'dby', 'sr', '', 'zzz']
@@ -81,12 +84,12 @@ def randomStr(n) -> str:
     return (''.join(random.sample(string.digits + string.ascii_letters, n))).lower()
 
 
-def DS1() -> str:
+def DS1(salt='lk2') -> str:
     """
     生成米游社DS1
     :return:
     """
-    n = Salt_LK2
+    n = Salt_LK2 if salt.lower() == 'lk2' else Salt_K2
     i = str(int(time.time()))
     r = randomStr(6)
     c = md5(f"salt={n}&t={i}&r={r}")
@@ -102,28 +105,21 @@ def DS2(query='', body='', salt='4x') -> str:
     :return: str
     """
     salt = Salt_4X if salt.lower() == '4x' else Salt_6X
-    new_body = dict()
     t = int(time.time())
     r = random.randint(100001, 200000)
-    main = ''
-    if body:
+    if body != '':
         if type(body) is str:
             body = json.loads(body)
-        for key in sorted(body):
-            new_body[key] = body[key]
-        body = json.dumps(new_body)
-        main = f"salt={salt}&t={t}&r={r}&b={body}"
-    elif query:
+        body = json.dumps(body, sort_keys=True)
+    if query != '':
         query = '&'.join(sorted(query.split('&')))
-        main = f"salt={salt}&t={t}&r={r}&q={query}"
-    else:
-        main = f"salt={salt}&t={t}&r={r}"
+    main = f"salt={salt}&t={t}&r={r}&b={body}&q={query}"
     ds = md5(main)
     return f"{t},{r},{ds}"
 
 
-def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, query='', body: str | dict = '{}',
-                   salt='4x', Referer="https://www.miyoushe.com/") -> dict:
+def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, query='', body: str | dict = '',
+                   salt_agro1='lk2', salt_agro2='4x', Referer="https://www.miyoushe.com/") -> dict:
     """
     生成请求头
     :param app: ‘app’ 或 ‘web’
@@ -133,20 +129,21 @@ def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, 
     :param agro: Ds算法（Ds1或Ds2）
     :param query: 查询参数（当算法为Ds2，请求为get时使用）
     :param body: post内容（当算法为Ds2，请求为post时使用）
-    :param salt: 指定算法所需的salt（当算法为Ds2时使用）
+    :param salt_agro1: 指定算法为Ds1的salt
+    :param salt_agro2: 指定算法为Ds2的salt
     :param Referer: 请求头的Referer字段
     :return: dict
     """
     headers = {
-        "Cookie": f'login_ticket={login_ticket};stuid={stuid};stoken={stoken}' if withCookie and account[
-            'isLogin'] else '',
+        "Cookie": cookie if withCookie and account['isLogin'] else '',
         'User-Agent': "okhttp/4.8.0" if app == 'app' else _USERAGENT,
         "Dnt": "1",
-        "DS": DS1() if agro == 1 else DS2(query, body, salt),
+        "DS": DS1(salt_agro1) if agro == 1 else DS2(query, body, salt_agro2),
         "x-rpc-client_type": client,
         "x-rpc-app_version": mysVersion,
         "X-Requested-With": "com.mihoyo.hyperion",
         "x-rpc-device_id": str(uuid.uuid3(uuid.NAMESPACE_URL, cookie)),
+        'Origin': 'https://webstatic.mihoyo.com',
         "x-rpc-device_name": "vivo s7",
         "x-rpc-device_model": "vivo-s7",
         "x-rpc-sys_version": "12",
@@ -253,7 +250,7 @@ def login(methods='web', mysAccount='', mysPasswd=''):
     用户登录操作
     :return:
     """
-    global cookie, login_ticket, stuid, stoken, account
+    global cookie, login_ticket, stuid, stoken, account, ltoken, ltuid, cookie_token, cookie
     logger.info("=" * 20)
     logger.info("logining...")
     if methods == 'web':
@@ -268,11 +265,15 @@ def login(methods='web', mysAccount='', mysPasswd=''):
     resp = session.get(urls.Cookie_url.format(login_ticket))
     data = resp.json()
     if "成功" in data["data"]["msg"]:
-        stuid = data["data"]["cookie_info"]["account_id"]
+        stuid = ltuid = data["data"]["cookie_info"]["account_id"]
         resp = session.get(url=urls.Cookie_url2.format(login_ticket, stuid))  # 获取stoken
         data = resp.json()
         stoken = data["data"]["list"][0]["token"]
-        account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken}
+        ltoken = data["data"]["list"][1]["token"]
+        resp = session.get(urls.Cookie_url3.format(stoken, stuid)).json()
+        cookie_token = resp['data']['cookie_token']
+        account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken, "ltoken": ltoken, "ltuid": ltuid, 'cookie_token': cookie_token}
+        cookie = f'login_ticket={login_ticket};stuid={stuid};stoken={stoken};ltuid={ltuid};stoken={ltoken};cookie_token={cookie_token}'
         with open(account_file, mode='w') as f:
             json.dump(account, f)
         logger.info(f'success')
@@ -287,15 +288,12 @@ def logout():
     用户退出登录操作
     :return:
     """
-    global account, cookie, login_ticket, stuid, stoken
+    global account, cookie, login_ticket, stuid, stoken, ltoken, ltuid, cookie_token
     logger.info("=" * 20)
     logger.info("logoff...")
     os.unlink(account_file)
-    cookie = ''
-    login_ticket = ''
-    stuid = ''
-    stoken = ''
-    account = {"isLogin": False, "login_ticket": "", "stuid": "", "stoken": ""}
+    cookie = login_ticket = stuid = stoken = ltuid = ltoken = cookie_token = ''
+    account = {"isLogin": False, "login_ticket": '', "stuid": '', "stoken": '', "ltoken": '', "ltuid": '', 'cookie_token': ''}
     with open(account_file, mode='w') as f:
         json.dump(account, f)
 

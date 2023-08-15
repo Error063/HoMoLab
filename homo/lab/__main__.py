@@ -25,7 +25,7 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
-version = '0.9.5.1'
+version = '0.9.5.2'
 home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 run_dir = os.path.join(home_dir, 'homolab-dir')
@@ -615,8 +615,7 @@ def enter():
         try:
             while load:
                 window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000,
-                                               js_api=apis,
-                                               focus=True)
+                                               js_api=apis, focus=True)
                 load = False
                 if not config['enableDebug'] == 'on':
                     webview.start(gui="edgechromium", user_agent=appUserAgent, localization=localization)
@@ -624,7 +623,8 @@ def enter():
                     webview.start(user_agent=appUserAgent, debug=config['enableDebug'] == 'on',
                                   localization=localization)
                 del window
-                time.sleep(1)
+                if load:
+                    time.sleep(1)
         except KeyError:
             pass
         except KeyboardInterrupt:
