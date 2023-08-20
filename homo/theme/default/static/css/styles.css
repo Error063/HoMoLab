@@ -230,6 +230,16 @@ input[type="text"], input[type="password"]{
     backdrop-filter: blur(100px);
     border-radius: 10px;
 }
+.postCard .user{
+    margin: unset !important;
+    padding: 20px;
+    height: 70px;
+}
+.account .user {
+    margin: unset !important;
+    padding: 15px;
+    height: 70px;
+}
 .postCard:not(.control){
     cursor: pointer;
 }
@@ -279,6 +289,9 @@ input[type="text"], input[type="password"]{
         margin: unset;
         padding: 10px;
         border-radius: unset;
+    }
+    .account .user{
+        padding: 5px;
     }
     .menu .blank{
         /*display: none;*/
@@ -356,11 +369,11 @@ input[type="text"], input[type="password"]{
     margin: 0 auto;
     /*padding: 5%;*/
     width: 100%;
-    height: 70px;
+    height: 40px;
     cursor: pointer;
 }
 .user:not(.commentUser and .userInSetting){
-    padding: 5%;
+    margin: 25px;
 }
 .user .avatar{
     float: left;
@@ -644,6 +657,7 @@ iframe{
     width: 100px;
     margin: -50px 2% 2%;
     border-radius: 50%;
+    background-color: white;
 }
 .userBig h1{
     float: left;
@@ -690,6 +704,15 @@ iframe{
 .releaseReply{
     height: 300px;
     cursor: none;
+}
+.comment{
+    margin: 25px;
+}
+.commentActions{
+    margin: 10px 25px;
+}
+.comment img:not(.emoticon-image){
+    width: 100%;
 }
 .noPosts{
     margin: 10px auto 0;

@@ -36,22 +36,23 @@
                     <div class="describe">{{ replies.comments[i]['describe'] }}</div>
                 </div>
             </div>
-            <div class="comment" id="comment-{{ i }}"></div>
-            <script>
-                let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});
-                quill_{{ i }}.enable(false);
-                quill_{{ i }}.setContents({{ replies.comments[i]['content'] | safe }})
-            </script>
-            <span>评论数：</span>
-            <span>{{ replies.comments[i]['sub_num'] }}</span>
-            <span>点赞数：</span>
-            <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
-            {% if account.isLogin %}
-                <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
-            {% endif %}
-            {% if replies.comments[i]['sub_num'] > 0 %}
-                <button class="showMore pageButton" onclick="hideAndRedirect('/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ replies.comments[i]['reply_id'] }}&floor_id={{ replies.comments[i]['floor_id'] }}')">查看评论</button>
-            {% endif %}
+            <div class="comment" id="comment-{{ i }}">{{ replies.comments[i]['content'] | safe }}</div>
+            <div class="commentActions">
+                <span>评论数：</span>
+                <span>{{ replies.comments[i]['sub_num'] }}</span>
+                <span>点赞数：</span>
+                <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
+                {% if account.isLogin %}
+                    <button class="voteReplyBtn pageButton"
+                            onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
+                {% endif %}
+                {% if replies.comments[i]['sub_num'] > 0 %}
+                    <button class="showMore pageButton"
+                            onclick="hideAndRedirect('/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ replies.comments[i]['reply_id'] }}&floor_id={{ replies.comments[i]['floor_id'] }}')">
+                        查看评论
+                    </button>
+                {% endif %}
+            </div>
         </div>
 {% endfor %}
     <div class="pageControl">

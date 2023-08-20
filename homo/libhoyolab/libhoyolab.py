@@ -126,7 +126,7 @@ def headerGenerate(app='web', client='4', withCookie=True, withDs=True, agro=1, 
     :param client: 1：iOS 2：Android 4：网页 5：其他
     :param withCookie: 是否携带cookie信息
     :param withDs: 是否包含Ds（已弃用）
-    :param agro: Ds算法（Ds1或Ds2）
+    :param agro: Ds算法（Ds1 -> 1 或 Ds2 -> 2）
     :param query: 查询参数（当算法为Ds2，请求为get时使用）
     :param body: post内容（当算法为Ds2，请求为post时使用）
     :param salt_agro1: 指定算法为Ds1的salt
@@ -408,8 +408,6 @@ class Page:
         logger.info('getting page')
         if pageType == 'recommend':
             apiUrl = urls.webHome.format(str(gid), str(page), str(pageSize))
-        elif pageType == 'feeds':  # 获取发现页时有问题
-            apiUrl = urls.feedPosts.format(str(gid), str(page))
         else:
             if pageType not in newsType:
                 typeNum = '1'
@@ -421,6 +419,16 @@ class Page:
         req = connectApi(apiUrl)
         result = req.json()
         self.articles = articleSet(result['data']['recommended_posts' if pageType == 'recommend' else 'list'])
+
+
+class Forum:
+
+    def __init__(self, forum_id, gid, last_id=0, pageSize=20, is_hot=True, sort_type=1):
+        apiUrl = urls.getForumPostList.format(str(forum_id), str(gid), 'false', str(is_hot).lower(), str(pageSize), str(sort_type), str(last_id))
+        resp = connectApi(apiUrl=apiUrl).json()
+        self.articles = articleSet(resp['data']['list'])
+        self.is_last = resp['data']['is_last']
+        self.last_id = resp['data']['last_id']
 
 
 class Comments:

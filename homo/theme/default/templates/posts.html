@@ -52,7 +52,7 @@
                     <div class="describe">{{ articles[i]['authorDescribe'] }}</div>
                 </div>
             </div>
-            <div class="articleInfo"  onclick="hidePostCards('/article?id={{ articles[i]['post_id'] }}')" style="cursor: pointer">
+            <div class="articleInfo" onclick="hidePostCards('/article?id={{ articles[i]['post_id'] }}')" style="cursor: pointer">
                 {% if articles[i]['cover'] != '' %}
                     <div class="image">
                         <div class="articleCover" style="background-image: url({{ articles[i]['cover'] }})"></div>

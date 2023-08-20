@@ -33,17 +33,19 @@
                 <div class="describe">{{ rootReply.comment['describe'] }}</div>
             </div>
         </div>
-        <div class="comment" id="rootComment"></div>
-    <script>
-        let quill_rootComment = new Quill('#rootComment', {theme: 'bubble'});
-        quill_rootComment.enable(false);
-        quill_rootComment.setContents({{ rootReply.comment['content'] | safe }})
-    </script>
-        <span>点赞数：</span>
-        <span class="voteReplyNum">{{ rootReply.comment['like_num'] }}</span>
-        {% if account.isLogin %}
-            <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ rootReply.comment['reply_id'] }}', '{{ rootReply.comment['post_id'] }}', {{ 'true' if rootReply.comment['upvoted'] else 'false' }})">{{ '取消点赞' if rootReply.comment['upvoted'] else '点赞' }}</button>
-        {% endif %}
+        <div class="comment" id="rootComment">{{ rootReply.comment['content'] | safe }}</div>
+{#    <script>#}
+{#        let quill_rootComment = new Quill('#rootComment', {theme: 'bubble'});#}
+{#        quill_rootComment.enable(false);#}
+{#        quill_rootComment.setContents({{ rootReply.comment['content'] | safe }})#}
+{#    </script>#}
+        <div class="commentActions">
+            <span>点赞数：</span>
+            <span class="voteReplyNum">{{ rootReply.comment['like_num'] }}</span>
+            {% if account.isLogin %}
+                <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ rootReply.comment['reply_id'] }}', '{{ rootReply.comment['post_id'] }}', {{ 'true' if rootReply.comment['upvoted'] else 'false' }})">{{ '取消点赞' if rootReply.comment['upvoted'] else '点赞' }}</button>
+            {% endif %}
+        </div>
     </div>
 {% for i in range(replies.comments | length) %}
     <div class="reply">
@@ -54,17 +56,19 @@
                 <div class="describe">{{ replies.comments[i]['describe'] }}</div>
             </div>
         </div>
-        <div class="comment" id="comment-{{ i }}"></div>
-    <script>
-        let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});
-        quill_{{ i }}.enable(false);
-        quill_{{ i }}.setContents({{ replies.comments[i]['content'] | safe }})
-    </script>
-        <span>点赞数：</span>
-        <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
-        {% if account.isLogin %}
-            <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i + 1 }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
-        {% endif %}
+        <div class="comment" id="comment-{{ i }}">{{ replies.comments[i]['content'] | safe }}</div>
+{#    <script>#}
+{#        let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});#}
+{#        quill_{{ i }}.enable(false);#}
+{#        quill_{{ i }}.setContents({{ replies.comments[i]['content'] | safe }})#}
+{#    </script>#}
+        <div class="commentActions">
+            <span>点赞数：</span>
+            <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
+            {% if account.isLogin %}
+                <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i + 1 }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
+            {% endif %}
+        </div>
     </div>
 {% endfor %}
     <div class="pageControl">

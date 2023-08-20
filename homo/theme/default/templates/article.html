@@ -56,12 +56,8 @@
                         });
                     </script>
                 {% elif type == 2 %}
-                    <div class="img-contents" id="contents"></div>
-                    <script>
-                        let quill_contents = new Quill('#contents', {theme: 'bubble'});
-                        quill_contents.enable(false);
-                        quill_contents.setContents({{ thread.getStructuredContent() | safe }})
-                    </script>
+                    <div class="img-contents ql-editor" id="contents">
+                        {{ thread.getStructuredContent() | safe }}
                     {% for images in thread.result['data']['post']['post']['images'] %}
                         <div class="ql-image">
                             <div class="ql-image-box">
@@ -69,38 +65,39 @@
                             </div>
                         </div>
                     {% endfor %}
+                    </div>
                 {% elif type == 5 %}
-                        <div class="mhy-vod">
-                            <video controls width="600" id="video"></video>
-                            <p>
-                                <label for="resolution">清晰度：</label>
-                                <select name="resolution" id="resolution" style="width: 100px;"
-                                        onchange="resolutionChange()"></select>
-                            </p>
-                        </div>
-                        <script>
-                            let vod_list = {{ thread.getVideo() | safe }}[0];
-                            let cover = vod_list['cover']
-                            let vods = vod_list['resolutions']
-                            let resolutions = document.getElementById('resolution')
-                            let videoClass = document.getElementById('video')
-                            videoClass.poster = cover
-                            for (let i = 0;i < vods.length; i++) {
-                                resolutions.options.add(new Option(vods[i]['definition'], vods[i]['url']))
-                            }
-                            resolutions.options[0].select = true
-                            function resolutionChange() {
-                                let index = resolutions.selectedIndex
-                                let vodSrc_selected = resolutions.options[index].value
-                                let playTime = videoClass.currentTime
-                                videoClass.src = vodSrc_selected
-                                videoClass.load()
-                                videoClass.currentTime = playTime
-                                videoClass.play()
-                            }
-                            resolutionChange()
-                            videoClass.pause()
-                        </script>
+                    <div class="mhy-vod">
+                        <video controls width="600" id="video"></video>
+                        <p>
+                            <label for="resolution">清晰度：</label>
+                            <select name="resolution" id="resolution" style="width: 100px;"
+                                    onchange="resolutionChange()"></select>
+                        </p>
+                    </div>
+                    <script>
+                        let vod_list = {{ thread.getVideo() | safe }}[0];
+                        let cover = vod_list['cover']
+                        let vods = vod_list['resolutions']
+                        let resolutions = document.getElementById('resolution')
+                        let videoClass = document.getElementById('video')
+                        videoClass.poster = cover
+                        for (let i = 0;i < vods.length; i++) {
+                            resolutions.options.add(new Option(vods[i]['definition'], vods[i]['url']))
+                        }
+                        resolutions.options[0].select = true
+                        function resolutionChange() {
+                            let index = resolutions.selectedIndex
+                            let vodSrc_selected = resolutions.options[index].value
+                            let playTime = videoClass.currentTime
+                            videoClass.src = vodSrc_selected
+                            videoClass.load()
+                            videoClass.currentTime = playTime
+                            videoClass.play()
+                        }
+                        resolutionChange()
+                        videoClass.pause()
+                    </script>
                 {% endif %}
             </div>
             <br>
@@ -147,7 +144,7 @@
                     <button class="replyBtn fix" onclick="releaseReply({{ thread.result["data"]['post']['post']['post_id'] }})">发布</button>
                 </div>
                 <script>
-                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow', modules: {toolbar: ["link"]}});
+                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'}); // , modules: {toolbar: ["link"]}
                     function releaseReply(post_id) {
                         let delta = quill_releaseReply.getContents();
                         let text = quill_releaseReply.getText();

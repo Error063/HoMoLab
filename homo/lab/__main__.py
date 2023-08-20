@@ -25,7 +25,7 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
-version = '0.9.5.2'
+version = '0.9.5.3'
 home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 run_dir = os.path.join(home_dir, 'homolab-dir')
@@ -96,7 +96,7 @@ if not (os.path.exists(os.path.join(app_dir, 'theme', theme, 'templates')) and o
         messagebox.showerror(title="用户界面加载失败", message=f"尝试加载 {theme} 时出现错误！")
         sys.exit(-1)
 
-window = None
+window: webview.Window = None
 token = webview.token
 appUserAgent = f'HoMoLab/114.514 (token-{token})'
 firstAccess = True
@@ -339,6 +339,11 @@ def main(game):
                            articles=libhoyolab.Page(gid=gameDict[game][1], page=page, pageType='recommend').articles,
                            select='recommend', game=nowPage, viewActions=actions, page=page, isLast=False,
                            account=account)
+
+
+@app.route('/<game>/forum')
+def forum(game):
+    pass
 
 
 @app.route('/<game>/search')
@@ -603,6 +608,8 @@ class Apis:
             return {'status': 'ok'}
         else:
             return {'status': f'err, {result[-1]}'}
+
+    # def pageContents(self, type, gid, forum_id):
 
     def openAppConfig(self):
         os.startfile(run_dir)

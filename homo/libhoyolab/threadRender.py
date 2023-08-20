@@ -3,6 +3,7 @@
 """
 import json
 import re
+from delta import html
 
 from homo.libhoyolab import replace_regex
 
@@ -16,19 +17,8 @@ def replaceAllFromDelta(contents: list | str, emotionDict: dict):
     """
     if type(contents) is str:
         contents = json.loads(contents)
-    new_contents = list()
-    for content in contents:
-        if type(content['insert']) is str:
-            emotions = re.findall(replace_regex.emotion, content['insert'])
-            if len(emotions) > 0:
-                for emotion in emotions:
-                    new_contents.append({'insert': {'image': emotionDict[emotion], "attributes": {"height": 100, "width": 100}}})
-            else:
-                new_contents.append(content)
-        else:
-            new_contents.append(content)
 
-    return json.dumps(new_contents, ensure_ascii=False)
+    return replaceAll(html.render(contents), emotionDict)
 
 
 def replaceAll(contents: str, emotionDict: dict):

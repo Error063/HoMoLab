@@ -24,6 +24,7 @@ getUserFullInfo = api_base + "user/api/getUserFullInfo?uid={0}"
 userPost = api_base + "post/wapi/userPost?offset={0}&size={1}&uid={2}"
 userReply = api_base + "post/wapi/userReply?offset={0}&size={1}&uid={2}"
 history = api_base + "painter/api/history/list?offset={0}"
+getForumPostList = api_base + "post/wapi/getForumPostList?forum_id={0}&gids={1}&is_good={2}&is_hot={3}&page_size={4}&sort_type={5}&last_id={6}"
 
 # Posts
 login = 'https://webapi.account.mihoyo.com/Api/login_by_password'
