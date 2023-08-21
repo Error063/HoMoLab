@@ -1,4 +1,4 @@
-.main *:not(select, input), .replies *:not(select, input){
+.main *:not(select, input, .card-title), .replies *:not(select, input, .card-title){
     color: #f3f3f3;
 }
 body:not(.commentBody){

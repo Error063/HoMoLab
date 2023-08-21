@@ -12,6 +12,7 @@ import logging
 from functools import wraps
 from tkinter import Tk, messagebox
 import ctypes
+import random
 
 import jinja2
 from flask import Flask, render_template, request, redirect, make_response, send_file
@@ -25,7 +26,8 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
-version = '0.9.5.3'
+version = '0.9.5.3.1'
+http_port = random.randint(60000, 65535)
 home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 run_dir = os.path.join(home_dir, 'homolab-dir')
@@ -615,6 +617,7 @@ class Apis:
         os.startfile(run_dir)
 
 
+
 def enter():
     global load, window
     apis = Apis()
@@ -622,7 +625,7 @@ def enter():
         try:
             while load:
                 window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000,
-                                               js_api=apis, focus=True)
+                                               js_api=apis, focus=True, http_port=http_port)
                 load = False
                 if not config['enableDebug'] == 'on':
                     webview.start(gui="edgechromium", user_agent=appUserAgent, localization=localization)
