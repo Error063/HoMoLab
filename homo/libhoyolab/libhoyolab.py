@@ -459,7 +459,6 @@ class Comments:
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(apiUrl, headers=header)
         result = resp.json()
-        # pprint.pprint(result)
         self.rank_by_hot = rank_by_hot
         self.comments = []
         comments: list = [None] * (max_size + 1) if rank_by_hot else [None] * max_size
@@ -593,6 +592,7 @@ class Search:
         result = req.json()
         self.isLastFlag = result['data']['is_last']
         self.articles = articleSet(result['data']['posts'])
+        self.results = {'gid': self.gid, 'isLast': self.isLastFlag, 'articles': self.articles}
 
 
 class User:
@@ -746,7 +746,7 @@ class Actions:
         header = headerGenerate(app='app', client='2', Referer='https://app.mihoyo.com')
         resp = connectApi(urls.history.format(str(offset)), headers=header).json()['data']
         # print(resp)
-        return articleSet(resp['list'], method='history'), resp['is_last']
+        return {'article': articleSet(resp['list'], method='history'), 'isLast': resp['is_last']}
 
     @staticmethod
     def releaseReply(delta, text, post_id, reply_id=''):

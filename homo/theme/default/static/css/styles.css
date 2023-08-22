@@ -575,6 +575,7 @@ iframe{
     border-radius: 10px;
     height: 25px;
     width: 75px;
+    margin: 8px;
 }
 .showMore{
     float: right;
@@ -639,7 +640,7 @@ iframe{
 .accountSettings .buttons{
     height: 50px;
 }
-.userPage{
+.userPage, .history{
     padding: 4%;
 }
 .userBig{

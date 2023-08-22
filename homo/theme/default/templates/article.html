@@ -12,7 +12,7 @@
             </div>
             <h1 class="title fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
             <p style="text-align: center">发布时间：{{ thread.getReleasedTime() }}</p>
-            <div class="content fix">
+            <div class="content fix" style="overflow-x: hidden">
 {#                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>#}
                 {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
                 {% if type == 1 %}
@@ -24,7 +24,7 @@
                             let videoClass = document.getElementsByClassName('video');
                             let mhyvods = document.getElementsByClassName('mhy-vod');
                             for (let i = 0; i < vod_lists.length; i++) {
-                                mhyvods[i].innerHTML += `<video controls width="600" class="video"></video>`;
+                                mhyvods[i].innerHTML += `<video controls class="video" width="500"></video>`;
                                 mhyvods[i].innerHTML += '<p><label for="resolution">清晰度：</label>';
                                 mhyvods[i].innerHTML += `<select name="resolution" id="resolution" class="resolution" style="width: 100px;" onchange="resolutionChange(${i})"></select></p>`;
                                 let vod_list = vod_lists[i];

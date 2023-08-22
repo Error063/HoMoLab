@@ -23,7 +23,7 @@
 <body class="commentBody">
 <div class="replies">
     <div class="pageControl">
-        <button class="pageButton" onclick="window.location.href = '/comments?id={{ replies.post_id }}&gid={{ replies.gid }}'">返回</button>
+        <button class="pageButton" onclick="window.location.href = '/comments?id={{ post_id }}&gid={{ gid }}'">返回</button>
     </div>
     <div class="reply mainReply">
         <div class="user commentUser">
@@ -34,11 +34,6 @@
             </div>
         </div>
         <div class="comment" id="rootComment">{{ rootReply.comment['content'] | safe }}</div>
-{#    <script>#}
-{#        let quill_rootComment = new Quill('#rootComment', {theme: 'bubble'});#}
-{#        quill_rootComment.enable(false);#}
-{#        quill_rootComment.setContents({{ rootReply.comment['content'] | safe }})#}
-{#    </script>#}
         <div class="commentActions">
             <span>点赞数：</span>
             <span class="voteReplyNum">{{ rootReply.comment['like_num'] }}</span>
@@ -47,45 +42,44 @@
             {% endif %}
         </div>
     </div>
-{% for i in range(replies.comments | length) %}
-    <div class="reply">
-        <div class="user commentUser">
-            <img class="avatar" src="{{ replies.comments[i]['avatar'] }}"/>
-            <div class="userinfo">
-                <div class="nickname">{{ replies.comments[i]['username'] }}</div>
-                <div class="describe">{{ replies.comments[i]['describe'] }}</div>
-            </div>
-        </div>
-        <div class="comment" id="comment-{{ i }}">{{ replies.comments[i]['content'] | safe }}</div>
-{#    <script>#}
-{#        let quill_{{ i }} = new Quill('#comment-{{ i }}', {theme: 'bubble'});#}
-{#        quill_{{ i }}.enable(false);#}
-{#        quill_{{ i }}.setContents({{ replies.comments[i]['content'] | safe }})#}
-{#    </script>#}
-        <div class="commentActions">
-            <span>点赞数：</span>
-            <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
-            {% if account.isLogin %}
-                <button class="voteReplyBtn pageButton" onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i + 1 }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
-            {% endif %}
-        </div>
-    </div>
-{% endfor %}
-    <div class="pageControl">
-{% if replies.isLastFlag and replies.page == 1 %}
-    <span>没有更多了</span>
-{% else %}
-        {% if prev_id != '-1' %}
-            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ reply_id }}&floor_id={{ floor_id }}&last_id={{ prev_id }}">
-                <button class="pageButton">上一页</button>
-            </a>
-        {% endif %}
-        {% if not replies.isLastFlag %}
-            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ reply_id }}&floor_id={{ floor_id }}&last_id={{ replies.last_id }}">
-                <button class="pageButton">下一页</button>
-            </a>
-        {% endif %}
-{% endif %}
-    </div>
 </div>
+<script>
+    let userPosts = document.getElementsByClassName('replies')[0];
+    let xhr = new XMLHttpRequest();
+    let post = null;
+    let temp = '';
+    let page = 1;
+    let last_id = 0;
+    let bottomNotice = true;
+
+    function addUserArticle() {
+        xhr.open("get", `/apis/subComment?page=${page}&gid={{ gid }}&post_id={{ post_id }}&floor_id={{ floor_id }}&last_id=${last_id}`);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let replies = JSON.parse(xhr.responseText);
+                last_id = replies.last_id
+                if (replies.comments.length > 0) {
+                    page++;
+                    for (let i = 0; i < replies.comments.length; i++) {
+                        temp += `<div class="reply"><div class="user commentUser"><img class="avatar" src="${replies.comments[i]['avatar']}"/><div class="userinfo"><div class="nickname">${replies.comments[i]['username']}</div><div class="describe">${replies.comments[i]['describe']}</div></div></div><div class="comment" id="comment">${replies.comments[i]['content']}</div><div class="commentActions"><span>点赞数：</span><span class="voteReplyNum">${replies.comments[i]['like_num']}</span>`;
+                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString}, ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
+                        userPosts.innerHTML += temp;
+                        temp = '';
+                    }
+                }
+                if (replies.isLast && bottomNotice) {
+                    userPosts.innerHTML += `<div class="noPosts"><strong>已经到底了</strong></div>`;
+                    bottomNotice = false;
+                }
+            }
+        }
+        xhr.send();
+    }
+    document.addEventListener('scroll',function () {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+            addUserArticle();
+        }
+    });
+    addUserArticle();
+</script>
 </body>
