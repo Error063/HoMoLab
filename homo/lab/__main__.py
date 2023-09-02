@@ -75,6 +75,8 @@ except FileNotFoundError:
 root = Tk()
 monitor_height = root.winfo_screenheight()
 monitor_width = root.winfo_screenwidth()
+print(monitor_width, monitor_height)
+print(int(monitor_width * 0.98), int(monitor_height * 0.98))
 root.withdraw()
 if platform.system() == 'Windows':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)

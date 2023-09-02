@@ -587,7 +587,7 @@ iframe{
     border-radius: 10px;
     height: 25px;
     width: 75px;
-    margin: 8px;
+    margin: 8px 0 8px 8px;
 }
 .showMore{
     float: right;
