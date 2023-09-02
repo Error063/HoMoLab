@@ -73,6 +73,8 @@ except FileNotFoundError:
 
 
 root = Tk()
+monitor_height = root.winfo_screenheight()
+monitor_width = root.winfo_screenwidth()
 root.withdraw()
 if platform.system() == 'Windows':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -676,7 +678,7 @@ def enter():
     if platform.system() == 'Windows' or config['enableDebug'] == 'on':
         try:
             while load:
-                window = webview.create_window('HoMoLab', app, min_size=(1680, 1200), width=1280, height=1200,
+                window = webview.create_window('HoMoLab', app, min_size=(int(monitor_width * 0.98), int(monitor_height * 0.98)),
                                                js_api=apis, focus=True)
                 load = False
                 if not config['enableDebug'] == 'on':
