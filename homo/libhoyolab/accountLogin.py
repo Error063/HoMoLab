@@ -144,7 +144,8 @@ def loginByPassword(account, password):
             'source': 'user.mihoyo.com',
             't': str(int(time.time() * 1000))
         }
-        resp_login = session.post(urls.login, data=datas).json()
+        raw_resp = session.post(urls.login, data=datas)
+        resp_login = raw_resp.json()
         if resp_login['data']['msg'] == '成功':
             return {'msg': resp_login['data']['msg'], 'token': resp_login['data']['account_info']['weblogin_token']}
         else:

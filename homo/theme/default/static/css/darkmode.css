@@ -29,9 +29,9 @@ input[type="submit"]{
 button{
     background-color: #606060;
 }
-span, p{
-    mix-blend-mode: hard-light;
-}
+/*span, p{*/
+/*    mix-blend-mode: hard-light;*/
+/*}*/
 .card-title, .link-button span{
     color: #000;
 }
@@ -41,7 +41,7 @@ span, p{
 .tag{
     background-color: #3f3f3f;
 }
-.setting{
+.setting, .welcome{
     background-color: rgba(0, 104, 190, 0.5);
 }
 .userBig, .noPosts{

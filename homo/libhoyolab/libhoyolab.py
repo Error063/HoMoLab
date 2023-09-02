@@ -223,7 +223,7 @@ def connectApi(apiUrl: str, method='get', data=None, headers=None) -> requests.R
         headers = headerGenerate(app='web')
     if data is None:
         data = {}
-    count = 3  # 尝试三次
+    count = 5  # 尝试三次
     err = None
     resp = None
     while count != 0:
@@ -273,7 +273,10 @@ def login(methods='web', mysAccount='', mysPasswd=''):
         resp = session.get(urls.Cookie_url3.format(stoken, stuid)).json()
         cookie_token = resp['data']['cookie_token']
         account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken, "ltoken": ltoken, "ltuid": ltuid, 'cookie_token': cookie_token}
-        cookie = f'login_ticket={login_ticket};stuid={stuid};stoken={stoken};ltuid={ltuid};stoken={ltoken};cookie_token={cookie_token}'
+        cookie = f'login_ticket={login_ticket};stuid={stuid};stoken={stoken};ltuid={ltuid};ltoken={ltoken};cookie_token={cookie_token}'
+        # h = headerGenerate()
+        # print(h)
+        # print(session.post(urls.Cookie_url4, headers=h).json())
         with open(account_file, mode='w') as f:
             json.dump(account, f)
         logger.info(f'success')

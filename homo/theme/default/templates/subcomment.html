@@ -42,9 +42,10 @@
             {% endif %}
         </div>
     </div>
+    <div class="subreplies"></div>
 </div>
 <script>
-    let userPosts = document.getElementsByClassName('replies')[0];
+    let userPosts = document.getElementsByClassName('subreplies')[0];
     let xhr = new XMLHttpRequest();
     let post = null;
     let temp = '';
@@ -62,7 +63,7 @@
                     page++;
                     for (let i = 0; i < replies.comments.length; i++) {
                         temp += `<div class="reply"><div class="user commentUser"><img class="avatar" src="${replies.comments[i]['avatar']}"/><div class="userinfo"><div class="nickname">${replies.comments[i]['username']}</div><div class="describe">${replies.comments[i]['describe']}</div></div></div><div class="comment" id="comment">${replies.comments[i]['content']}</div><div class="commentActions"><span>点赞数：</span><span class="voteReplyNum">${replies.comments[i]['like_num']}</span>`;
-                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString}, ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
+                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString()}, ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
                         userPosts.innerHTML += temp;
                         temp = '';
                     }

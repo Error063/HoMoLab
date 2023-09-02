@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <link rel="stylesheet" type="text/css" href="/resources?css=hoyolab">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="/personal.css">
+    <script src="/resources?js"></script>
+    <meta charset="UTF-8">
+    <title>米游社</title>
+</head>
+<body style="min-width: 650px">
+    <div class="headers"></div>
+    <div class="main">
+        <div class="welcome">
+            <p><span style="font-size: 10px;">HoMoLab 版本：{{ version }}</span></p>
+            <h1>欢迎</h1>
+            <div style="height: 100px;"></div>
+            {% if agreementChanged %}
+                <h3 style="margin-bottom: 15px;">协议已更新！</h3>
+            {% endif %}
+            <h3 style="margin-bottom: 10px;">在开始使用前，您需要阅读并同意以下内容：</h3>
+            <p style="margin-bottom: 10px;">为了实现用户登录功能，本程序会在用户目录下存储用户登录凭据。我们通过公开源代码来保证您的登录凭据不会被上传到其他未知平台。您应当妥善保存该凭据，任何因为您的不当操作而导致登录凭据泄露，本程序不负任何责任。</p>
+            <p style="margin-bottom: 10px;">同时，为了实现程序的必要功能，您的数据也会与米哈游服务器进行交互。您也需要阅读并同意 <a target="_blank" href="https://user.mihoyo.com/#/agreement?hideBack=true"><strong>《米哈游用户协议》</strong></a> 和 <a target="_blank" href="https://user.mihoyo.com/#/privacyAgreement?hideBack=true"><strong>《米哈游隐私政策》</strong></a></p>
+            <div style="height: 30px;"></div>
+            <a onclick="showPopup('', '是否同意？', function() { location.href='/welcome?agreed'; }, function() {})">
+                <button class="pageButton" style="line-height: 2;width: 100px;height: 30px;">同意并继续</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

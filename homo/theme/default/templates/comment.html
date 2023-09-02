@@ -40,12 +40,11 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 let replies = JSON.parse(xhr.responseText);
-                console.log(replies)
                 if (replies.comments.length > 0 && bottomNotice) {
                     page++;
                     for (let i = 0; i < replies.comments.length; i++) {
                         temp += `<div class="reply"><div class="user commentUser"><img class="avatar" src="${replies.comments[i]['avatar']}"/><div class="userinfo"><div class="nickname">${replies.comments[i]['username']}</div><div class="describe">${replies.comments[i]['describe']}</div></div></div><div class="comment" id="comment">${replies.comments[i]['content']}</div><div class="commentActions"><span>评论数：</span><span>${replies.comments[i]['sub_num']}</span><span>点赞数：</span><span class="voteReplyNum">${replies.comments[i]['like_num']}</span>`;
-                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString}, ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
+                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString()}', ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
                         temp += `<button class="showMore pageButton" onclick="hideAndRedirect('/comments?id=${replies.post_id}&gid=${replies.gid}&reply_id=${replies.comments[i].reply_id}&floor_id=${replies.comments[i].floor_id}')">查看评论</button></div></div>`;
                         userPosts.innerHTML += temp;
                         temp = '';

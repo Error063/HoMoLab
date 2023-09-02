@@ -49,3 +49,5 @@ user-agents==2.2.0
 webencodings==0.5.1
 Werkzeug==2.3.6
 zipp==3.16.2
+beautifulsoup4~=4.12.2
+setuptools~=65.5.1

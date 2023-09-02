@@ -113,6 +113,27 @@ function openAppConfig() {
 
     })
 }
+function debugPage() {
+    location.href = '/welcome'
+}
+function showPopup(title, content, handleConfirm, handleCancel){
+    let popup = '<div class="popup"><p class="popup_title"></p><p class="popup_content"></p><div class="popup_btn"><button class="cancelBtn">取消</button><button class="confirmBtn">确认</button></div></div>';
+    let body = document.querySelector('body');
+    let overlay = document.createElement('div');
+    overlay.id = 'overlay';
+    overlay.innerHTML = popup;
+    body.appendChild(overlay);
+    document.getElementsByClassName('popup_title')[0].innerHTML = title
+    document.getElementsByClassName('popup_content')[0].innerHTML = content
+    document.querySelector('.cancelBtn').addEventListener('click', function () {
+        document.getElementById("overlay").remove();
+        handleCancel();
+    });
+    document.querySelector('.confirmBtn').addEventListener('click', function () {
+        document.getElementById("overlay").remove();
+        handleConfirm();
+    });
+}
 window.onblur = function() {
     if (!document.hasFocus()){
         let header = document.getElementsByClassName("headers")[0]
