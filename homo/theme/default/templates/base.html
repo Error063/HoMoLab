@@ -12,7 +12,8 @@
 </head>
 <body style="min-width: 650px">
     <div class="headers">
-        <div class="controllers">
+        {% if account != None%}
+            <div class="controllers">
             <a onclick="pageControl('back')">
                 <div class="back controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
@@ -48,6 +49,13 @@
                 <div class="settingIcon controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
             </a>
         </div>
+        {% else %}
+            <div class="userControllers">
+                <a onclick="hideAndRedirect('/setting')">
+                    <div class="settingIcon controller" style="background-image: url('{{ url_for('static',filename='icons/pageControllers.png') }}')"></div>
+                </a>
+            </div>
+        {% endif %}
     </div>
     <div class="main">
         {% block main %}

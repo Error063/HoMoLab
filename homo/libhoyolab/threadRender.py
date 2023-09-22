@@ -3,6 +3,7 @@
 """
 import json
 import re
+
 from delta import html
 
 from homo.libhoyolab import replace_regex
@@ -31,6 +32,6 @@ def replaceAll(contents: str, emotionDict: dict):
     contents = re.sub(replace_regex.emotion,
                       lambda m: f'<img class="emoticon-image emotionIcon" src="{emotionDict[m.group(1)]}">',
                       contents)
-    contents = re.sub(replace_regex.article, lambda m: f'<a href="/article?id={m.group(1)}">', contents)
-    contents = re.sub(replace_regex.user, lambda m: f'<a href="/user?uid={m.group(1)}">', contents)
+    contents = re.sub(replace_regex.article, lambda m: f'<a href="/article?id={m.group(1)}" ', contents)
+    contents = re.sub(replace_regex.user, lambda m: f'<a href="/user?uid={m.group(1)}" ', contents)
     return contents

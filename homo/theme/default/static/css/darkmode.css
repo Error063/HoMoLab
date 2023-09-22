@@ -1,4 +1,4 @@
-.main *:not(select, input), .replies *:not(select, input){
+.main *:not(select, input, .card-title), .replies *:not(select, input, .card-title){
     color: #f3f3f3;
 }
 body:not(.commentBody){
@@ -21,17 +21,17 @@ input[type="submit"]{
 .area{
     background-color: #0090cf;
 }
-.content .ql-editor{
-    background-color: rgba(175, 158, 128, 0.7);
-    padding: 5%;
-    border-radius: 10px;
-}
+/*.content .ql-editor{*/
+/*    background-color: rgba(175, 158, 128, 0.7);*/
+/*    padding: 5%;*/
+/*    border-radius: 10px;*/
+/*}*/
 button{
     background-color: #606060;
 }
-span, p{
-    mix-blend-mode: hard-light;
-}
+/*span, p{*/
+/*    mix-blend-mode: hard-light;*/
+/*}*/
 .card-title, .link-button span{
     color: #000;
 }
@@ -41,12 +41,15 @@ span, p{
 .tag{
     background-color: #3f3f3f;
 }
-.setting{
+.setting, .welcome{
     background-color: rgba(0, 104, 190, 0.5);
 }
 .userBig, .noPosts{
     background-color: rgba(44, 106, 176, 0.5);
 }
-.postCard, .article, .reply, .pageControl, .comments{
+.postCard, .reply, .pageControl, .comments{
     background-color: rgba(80, 80, 80, 0.5);
+}
+.article{
+    background-color: rgba(175, 158, 128, 50%);
 }

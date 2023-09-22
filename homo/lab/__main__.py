@@ -12,9 +12,10 @@ import logging
 from functools import wraps
 from tkinter import Tk, messagebox
 import ctypes
+import random
 
 import jinja2
-from flask import Flask, render_template, request, redirect, make_response, send_file
+from flask import Flask, render_template, request, redirect, make_response, send_file, jsonify
 import json
 import webview
 
@@ -25,7 +26,8 @@ if platform.system() == 'Windows':
 
 init_time = str(int(time.time()))
 
-version = '0.9.5.3'
+version = '0.9.5.3.1'
+agreement_version = '1'
 home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 run_dir = os.path.join(home_dir, 'homolab-dir')
@@ -41,7 +43,6 @@ actions = {"article": "文章", "recommend": "推荐", "announce": "公告", "ac
            "history": "历史", "search": "搜索", "setting": "设置", "user": "用户", "error": "错误", "login": "登录"}
 localization = {'global.quitConfirmation': '确定关闭?'}
 
-
 if not os.path.exists(run_dir):
     os.mkdir(run_dir)
 
@@ -52,7 +53,8 @@ logging.basicConfig(filename=os.path.join(logs_dir, f"app-{init_time}.log"),
                     filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 config = {"openLoad": "ys", "enableDebug": "off", "colorFollowSystem": "on", "colorMode": "auto",
-          "theme": "default", "usingSystemWallpaper": "off"}
+          "theme": "default", "usingSystemWallpaper": "off",
+          'agreement': {'isAgree': False, 'version': agreement_version}}
 
 try:
     with open(config_file) as f:
@@ -60,15 +62,20 @@ try:
     for c in config_read:
         config[c] = config_read[c]
     with open(config_file, mode='w') as f:
-        json.dump(config, f)
+        json.dump(config, f, ensure_ascii=False, indent=2)
 except FileNotFoundError:
     logging.warning('configs load failed, creating...')
     if not os.path.exists(config_dir):
         os.mkdir(config_dir)
     with open(config_file, mode='w') as f:
-        json.dump(config, f)
+        json.dump(config, f, ensure_ascii=False, indent=2)
+
 
 root = Tk()
+monitor_height = root.winfo_screenheight()
+monitor_width = root.winfo_screenwidth()
+print(monitor_width, monitor_height)
+print(int(monitor_width * 0.98), int(monitor_height * 0.98))
 root.withdraw()
 if platform.system() == 'Windows':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -310,16 +317,11 @@ def comments():
     if 'reply_id' in request.args and 'floor_id' in request.args:
         reply_id = request.args.get('reply_id')
         floor_id = request.args.get('floor_id')
-        last_id = request.args.get("last_id") if 'last_id' in request.args else '0'
-        prev_id = request.args.get("prev_id") if 'prev_id' in request.args else '-1'
         rootReply = libhoyolab.RootComment(post_id, reply_id)
-        subReplies = libhoyolab.SubComments(post_id, floor_id, last_id, gid)
-        return render_template('subcomment.html', prev_id=prev_id, floor_id=floor_id, reply_id=reply_id,
-                               replies=subReplies, rootReply=rootReply, account=account)
+        return render_template('subcomment.html', floor_id=floor_id, reply_id=reply_id,
+                               rootReply=rootReply, account=account, post_id=post_id, gid=gid)
     else:
-        page = request.args.get("page") if 'page' in request.args else '1'
-        replies = libhoyolab.Comments(post_id=post_id, gid=gid, page=page)
-        return render_template('comment.html', replies=replies, account=account)
+        return render_template('comment.html', account=account, gid=gid, post_id=post_id)
 
 
 @app.route('/<game>')
@@ -397,7 +399,7 @@ def setting():
             config[k] = settings[k]
         openLoad = config['openLoad']
         with open(config_file, mode='w+') as fp:
-            json.dump(config, fp)
+            json.dump(config, fp, ensure_ascii=False, indent=2)
             logging.info(fp.read())
         load = True
         window.destroy()
@@ -438,10 +440,48 @@ def history():
     :return:
     """
     page = int(request.args.get('page')) if 'page' in request.args else 1
-    offset = ((page - 1) * 20) + 1
-    history_posts = libhoyolab.Actions.getHistory(offset)
-    return render_template('posts.html', articles=history_posts[0], select='history', game=nowPage,
-                           page=page, account=account, isLast=history_posts[1], viewActions=actions)
+    return render_template('history.html', select='history', game=nowPage,
+                           page=page, account=account, viewActions=actions)
+
+
+@app.route('/apis/<request_action>')
+@LoadPage
+def webApis(request_action):
+    match request_action:
+        case 'history':
+            page = int(request.args.get('page')) if 'page' in request.args else 1
+            offset = ((page - 1) * 20) + 1
+            return jsonify(libhoyolab.Actions.getHistory(offset))
+        case 'userArticle':
+            uid = request.args.get('uid') if 'uid' in request.args else 0
+            offset = request.args.get('offset') if 'offset' in request.args else 0
+            return jsonify(libhoyolab.User(int(uid)).getUserPost(offset=offset))
+        case 'news':
+            requestType = request.args.get('type') if 'type' in request.args else 'announce'
+            page = int(request.args.get('page') if 'page' in request.args else '1')
+            game = request.args.get('game')
+            return jsonify(libhoyolab.Page(gid=gameDict[game][1], page=page, pageType=requestType).articles)
+        case 'search':
+            game = request.args.get('game')
+            keyword = request.args.get('content')
+            gameid = gameDict[game][1]
+            page = int('1' if 'page' not in request.args else request.args.get('page'))
+            return jsonify(libhoyolab.Search(keyWords=keyword, gid=gameid, page=page).articles)
+        case 'comment':
+            post_id = request.args.get("post_id")
+            gid = request.args.get("gid")
+            page = request.args.get("page") if 'page' in request.args else '1'
+            replies = libhoyolab.Comments(post_id=post_id, gid=gid, page=page)
+            return jsonify({'comments': replies.comments, 'isLast': replies.isLastFlag, 'page': replies.page,
+                            'post_id': replies.post_id, 'gid': replies.gid})
+        case 'subComment':
+            post_id = request.args.get("post_id")
+            floor_id = request.args.get('floor_id')
+            last_id = request.args.get('last_id', default=0)
+            gid = request.args.get("gid")
+            replies = libhoyolab.SubComments(post_id=post_id, gid=gid, last_id=last_id, floor_id=floor_id)
+            return jsonify({'comments': replies.comments, 'isLast': replies.isLastFlag, 'last_id': replies.last_id,
+                            'post_id': replies.post_id})
 
 
 @app.route('/')
@@ -451,8 +491,13 @@ def index():
     应用主页（应用进入时的入口）
     :return:
     """
-    window.set_title(f'HoMoLab - {gameDict[nowPage][0]}')
-    return redirect(f'/{nowPage}')
+    if config['agreement']['version'] != agreement_version:
+        return redirect('/welcome')
+    elif not config['agreement']['isAgree']:
+        return redirect('/welcome')
+    else:
+        window.set_title(f'HoMoLab - {gameDict[nowPage][0]}')
+        return redirect(f'/{nowPage}')
 
 
 @app.route('/<game>/vote')
@@ -462,9 +507,22 @@ def vote(game):
     return redirect(f"https://www.miyoushe.com/{game}/vote?id={vote_id}")
 
 
+@app.route('/welcome')
+def welcome():
+    window.set_title('HoMoLab - 欢迎')
+    if 'agreed' not in request.args:
+        return render_template('welcome.html', version=version, agreementChanged=config['agreement']['version'] != agreement_version)
+    else:
+        config['agreement']['isAgree'] = True
+        config['agreement']['version'] = agreement_version
+        with open(config_file, mode='w') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        return redirect('/')
+
+
 @app.errorhandler(500)
 def errorPage(e):
-    return render_template('error.html', select='error', viewActions=actions, account=account), 500
+    return render_template('error.html', select='error', viewActions=actions, account=None), 500
 
 
 class Apis:
@@ -621,7 +679,7 @@ def enter():
     if platform.system() == 'Windows' or config['enableDebug'] == 'on':
         try:
             while load:
-                window = webview.create_window('HoMoLab', app, min_size=(1280, 800), width=1280, height=1000,
+                window = webview.create_window('HoMoLab', app, min_size=(int(monitor_width * 0.98), int(monitor_height * 0.98)),
                                                js_api=apis, focus=True)
                 load = False
                 if not config['enableDebug'] == 'on':

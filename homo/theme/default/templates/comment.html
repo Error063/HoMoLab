@@ -26,51 +26,44 @@
     <meta charset="UTF-8">
 </head>
 <body class="commentBody">
-<div class="replies">
-{% for i in range(replies.comments | length) %}
-        <div class="reply">
-            <div class="user commentUser">
-                <img class="avatar" src="{{ replies.comments[i]['avatar'] }}"/>
-                <div class="userinfo">
-                    <div class="nickname">{{ replies.comments[i]['username'] }}</div>
-                    <div class="describe">{{ replies.comments[i]['describe'] }}</div>
-                </div>
-            </div>
-            <div class="comment" id="comment-{{ i }}">{{ replies.comments[i]['content'] | safe }}</div>
-            <div class="commentActions">
-                <span>评论数：</span>
-                <span>{{ replies.comments[i]['sub_num'] }}</span>
-                <span>点赞数：</span>
-                <span class="voteReplyNum">{{ replies.comments[i]['like_num'] }}</span>
-                {% if account.isLogin %}
-                    <button class="voteReplyBtn pageButton"
-                            onclick="upVoteReply('{{ replies.comments[i]['reply_id'] }}', '{{ replies.comments[i]['post_id'] }}', {{ 'true' if replies.comments[i]['upvoted'] else 'false' }}, {{ i }})">{{ '取消点赞' if replies.comments[i]['upvoted'] else '点赞' }}</button>
-                {% endif %}
-                {% if replies.comments[i]['sub_num'] > 0 %}
-                    <button class="showMore pageButton"
-                            onclick="hideAndRedirect('/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&reply_id={{ replies.comments[i]['reply_id'] }}&floor_id={{ replies.comments[i]['floor_id'] }}')">
-                        查看评论
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-{% endfor %}
-    <div class="pageControl">
-{% if replies.isLastFlag and replies.page == 1 %}
-    <span>没有更多了</span>
-{% else %}
-    <span>当前为第 {{ replies.page }} 页</span>
-        {% if replies.page > 1 %}
-            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&page={{ replies.page - 1 }}">
-                <button class="pageButton">上一页</button>
-            </a>
-        {% endif %}
-        {% if not replies.isLastFlag %}
-            <a href="/comments?id={{ replies.post_id }}&gid={{ replies.gid }}&page={{ replies.page + 1 }}">
-                <button class="pageButton">下一页</button>
-            </a>
-        {% endif %}
-{% endif %}
-    </div>
-</div>
+<div class="replies"></div>
+<script>
+    let userPosts = document.getElementsByClassName('replies')[0];
+    let xhr = new XMLHttpRequest();
+    let post = null;
+    let temp = '';
+    let page = 1;
+    let bottomNotice = true;
+
+    function addUserArticle() {
+        xhr.open("get", `/apis/comment?page=${page}&gid={{ gid }}&post_id={{ post_id }}`);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let replies = JSON.parse(xhr.responseText);
+                if (replies.comments.length > 0 && bottomNotice) {
+                    page++;
+                    for (let i = 0; i < replies.comments.length; i++) {
+                        temp += `<div class="reply"><div class="user commentUser"><img class="avatar" src="${replies.comments[i]['avatar']}"/><div class="userinfo"><div class="nickname">${replies.comments[i]['username']}</div><div class="describe">${replies.comments[i]['describe']}</div></div></div><div class="comment" id="comment">${replies.comments[i]['content']}</div><div class="commentActions"><span>评论数：</span><span>${replies.comments[i]['sub_num']}</span><span>点赞数：</span><span class="voteReplyNum">${replies.comments[i]['like_num']}</span>`;
+                        temp += `{% if account.isLogin %}<button class="voteReplyBtn pageButton" onclick="upVoteReply('${replies.comments[i]['reply_id']}', '${replies.comments[i].post_id}', '${replies.comments[i].upvoted.toString()}', ${i})">${replies.comments[i].upvoted?'取消点赞':'点赞'}</button>{% endif %}`;
+                        temp += `<button class="showMore pageButton" onclick="hideAndRedirect('/comments?id=${replies.post_id}&gid=${replies.gid}&reply_id=${replies.comments[i].reply_id}&floor_id=${replies.comments[i].floor_id}')">查看评论</button></div></div>`;
+                        userPosts.innerHTML += temp;
+                        temp = '';
+                    }
+                }
+                if (replies.isLast && bottomNotice) {
+                    userPosts.innerHTML += `<div class="noPosts"><strong>已经到底了</strong></div>`;
+                    bottomNotice = false;
+                }
+            }
+        }
+        xhr.send();
+    }
+    document.addEventListener('scroll',function () {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+            addUserArticle();
+        }
+    });
+    addUserArticle();
+</script>
+
 </body>
