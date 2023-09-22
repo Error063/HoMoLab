@@ -12,9 +12,7 @@
             </div>
             <h1 class="title fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>
             <p style="text-align: center">发布时间：{{ thread.getReleasedTime() }}</p>
-            <div class="content fix">
-{#                <h1 class="fix">{{ thread.result['data']['post']['post']['subject'] }}</h1>#}
-                {# 如果是以文字为主的文章，则直接使用返回的HTML文件并进行表情包转义，否则使用内置的渲染器对文章进行渲染并插入图片 #}
+            <div class="content fix" style="overflow-x: hidden">
                 {% if type == 1 %}
                     <div class="ql-editor">{{ thread.getContent() | safe }}</div>
                     <script>
@@ -24,7 +22,7 @@
                             let videoClass = document.getElementsByClassName('video');
                             let mhyvods = document.getElementsByClassName('mhy-vod');
                             for (let i = 0; i < vod_lists.length; i++) {
-                                mhyvods[i].innerHTML += `<video controls width="600" class="video"></video>`;
+                                mhyvods[i].innerHTML += `<video controls class="video" width="500"></video>`;
                                 mhyvods[i].innerHTML += '<p><label for="resolution">清晰度：</label>';
                                 mhyvods[i].innerHTML += `<select name="resolution" id="resolution" class="resolution" style="width: 100px;" onchange="resolutionChange(${i})"></select></p>`;
                                 let vod_list = vod_lists[i];
@@ -139,35 +137,35 @@
                 </div>
             </div>
             {% if account.isLogin %}
-                <div class="replyOuter">
-                    <div id="releaseReply" class="releaseReply"></div>
-                    <button class="replyBtn fix" onclick="releaseReply({{ thread.result["data"]['post']['post']['post_id'] }})">发布</button>
-                </div>
-                <script>
-                    let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'}); // , modules: {toolbar: ["link"]}
-                    function releaseReply(post_id) {
-                        let delta = quill_releaseReply.getContents();
-                        let text = quill_releaseReply.getText();
-                        if (text.length > 0){
-                            try {
-                                pywebview.api.releaseReply(delta, text, post_id).then(function (status) {
-                                    if (status['status'] === 'ok') {
-                                        alert('发送成功！');
-                                        quill_releaseReply.setContents([])
-                                    } else {
-                                        alert(status['status']);
-                                    }
-                                })
-                            } catch (e) {
-                                console.log("using pywebview js api failed!")
-                                alert('发送失败！');
-                            }
-                        }else {
-                            alert('内容不能为空！')
+            <div class="replyOuter">
+                <div id="releaseReply" class="releaseReply"></div>
+                <button class="replyBtn fix" onclick="releaseReply({{ thread.result["data"]['post']['post']['post_id'] }})">发布</button>
+            </div>
+            <script>
+                let quill_releaseReply = new Quill('#releaseReply', {theme: 'snow'}); // , modules: {toolbar: ["link"]}
+                function releaseReply(post_id) {
+                    let delta = quill_releaseReply.getContents();
+                    let text = quill_releaseReply.getText();
+                    if (text.length > 0){
+                        try {
+                            pywebview.api.releaseReply(delta, text, post_id).then(function (status) {
+                                if (status['status'] === 'ok') {
+                                    alert('发送成功！');
+                                    quill_releaseReply.setContents([])
+                                } else {
+                                    alert(status['status']);
+                                }
+                            })
+                        } catch (e) {
+                            console.log("using pywebview js api failed!")
+                            alert('发送失败！');
                         }
+                    }else {
+                        alert('内容不能为空！')
                     }
+                }
         </script>
-            {% endif %}
+        {% endif %}
     </div>
 </div>
     {# 评论区（使用iframe嵌入） #}

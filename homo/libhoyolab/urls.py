@@ -34,3 +34,4 @@ upvotePost = api_base + "apihub/sapi/upvotePost"
 collectPost = api_base + 'post/api/collectPost'
 releaseReply = api_base + 'post/api/releaseReply'
 upvoteReply = api_base + "apihub/sapi/upvoteReply"
+Cookie_url4 = 'https://passport-api.mihoyo.com/account/ma-cn-session/web/webVerifyForGame'

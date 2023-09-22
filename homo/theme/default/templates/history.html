@@ -1,35 +1,26 @@
 {% extends 'base.html' %}
 {% block main %}
-<div class="userPage">
-    <div class="userBig">
-        <img src="{{ user.getAvatar() }}" alt="">
-        <h1>{{ user.getNickname() }}</h1>
-        {% if user.uid != 0 and account.isLogin %}
-            <button class="followBtn {{ "follow" if user.info['follow_relation']['is_following'] else "unfollow" }}" onclick="followUser('{{ user.uid }}', '{{ "unfollow" if user.info['follow_relation']['is_following'] else "follow" }}')">
-            {{ '取消关注' if user.info['follow_relation']['is_following'] else '关注' }}
-        </button>
-        {% endif %}
-    </div>
+<div class="history">
     <div class="posts"></div>
     <script>
         let userPosts = document.getElementsByClassName('posts')[0];
         let xhr = new XMLHttpRequest();
-        let next = '0';
         let posts = Object();
         let post = null;
         let temp = '';
+        let page = 1
 
         function addUserArticle() {
-            xhr.open("get", `/apis/userArticle?uid={{ user.uid }}&offset=${next}`);
+            xhr.open("get", `/apis/history?page=${page}`);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     let res = JSON.parse(xhr.responseText);
-                    next = res['next'];
-                    posts = res['posts'];
-                    if (posts.length > 0) {
+                    posts = res['article'];
+                    if (posts.length > 0 && !res['isLast']) {
+                        page++;
                         for (let i = 0; i < posts.length; i++) {
                             post = posts[i];
-                            temp += `<a onclick="hidePostCards('/article?id=${post.post_id}')" style="cursor: pointer;text-decoration: none"><div class="postCard fix" style="height: 375px; padding-top: 10px"><div class="image">`;
+                            temp += `<a onclick="hidePostCards('/article?id=${post.post_id}')" style="cursor: pointer;text-decoration: none"><div class="postCard fix" style="padding-top: 10px"><div class="user" onclick="hidePostCards('/user?uid=${post.uid}')" style="cursor: pointer"><img class="avatar" src="${post.authorAvatar}"/><div class="userinfo"><div class="nickname">${post.authorName}</div><div class="describe">${post.authorDescribe}</div></div></div><div class="image">`;
                             if (post['cover'] !== '') {
                                 temp += `<div class="articleCover" style="background-image: url(${post.cover})"></div>`;
                             } else {
@@ -40,7 +31,7 @@
                             temp = '';
                         }
                     } else {
-                        userPosts.innerHTML = `<div class="noPosts"><strong>该用户没有发布任何帖子或该用户已将帖子设为隐藏</strong></div>`;
+                        userPosts.innerHTML += `<div class="noPosts"><strong>已经到底了</strong></div>`;
                     }
                 }
             }
