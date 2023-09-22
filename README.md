@@ -32,7 +32,11 @@
 <h1 align="center">HoMoLab</h1>
 <p align="center">基于Pywebview的米游社PC客户端实现</p>
 
+---
 
+## 已弃用
+
+由于本项目已重构并拆分为[libmiyoushe (米游社依赖库)](https://github.com/Error063/libmiyoushe)和[ReHomoLab(重构版，未开放)](https://github.com/Error063/ReHomoLab)两部分，因此本项目不再维护
 
 ---
 
