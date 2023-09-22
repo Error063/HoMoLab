@@ -18,14 +18,12 @@ logger = logging.getLogger('libhoyolab')
 
 urllib3.disable_warnings()
 
-# Salt_LK2 = 'PVeGWIZACpxXZ1ibMVJPi9inCY4Nd4y2'  # 米游社签到salt
-# Salt_K2 = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'  # 米游社讨论区专用salt
 Salt_K2 = 'F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa'  # 米游社签到salt
 Salt_LK2 = 'xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA'  # 米游社讨论区专用salt
 Salt_4X = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'
 Salt_6X = 't0qEgfub6cvueAPgR5m9aQWWVciEer7v'
-# mysVersion = "2.38.1"  # 米游社版本
-mysVersion = '2.55.1'
+Salt_PROD = 'JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS'
+mysVersion = '2.55.1'  # 米游社版本
 mysClient_type = '2'  # 1:ios 2:Android
 
 home_dir = str(pathlib.Path.home())
@@ -104,7 +102,13 @@ def DS2(query='', body='', salt='4x') -> str:
     :param salt: 指定算法所需的salt（当算法为Ds2时使用）
     :return: str
     """
-    salt = Salt_4X if salt.lower() == '4x' else Salt_6X
+    match salt.lower():
+        case '4x':
+            salt = Salt_4X
+        case 'lk2':
+            salt = Salt_6X
+        case 'prod':
+            salt = Salt_PROD
     t = int(time.time())
     r = random.randint(100001, 200000)
     if body != '':
@@ -274,9 +278,6 @@ def login(methods='web', mysAccount='', mysPasswd=''):
         cookie_token = resp['data']['cookie_token']
         account = {"isLogin": True, "login_ticket": login_ticket, "stuid": stuid, "stoken": stoken, "ltoken": ltoken, "ltuid": ltuid, 'cookie_token': cookie_token}
         cookie = f'login_ticket={login_ticket};stuid={stuid};stoken={stoken};ltuid={ltuid};ltoken={ltoken};cookie_token={cookie_token}'
-        # h = headerGenerate()
-        # print(h)
-        # print(session.post(urls.Cookie_url4, headers=h).json())
         with open(account_file, mode='w') as f:
             json.dump(account, f)
         logger.info(f'success')

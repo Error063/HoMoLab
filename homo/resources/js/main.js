@@ -116,7 +116,7 @@ function openAppConfig() {
 function debugPage() {
     location.href = '/welcome'
 }
-function showPopup(title, content, handleConfirm, handleCancel){
+function showPopupConfirm(title, content, handleConfirm, handleCancel){
     let popup = '<div class="popup"><p class="popup_title"></p><p class="popup_content"></p><div class="popup_btn"><button class="cancelBtn">取消</button><button class="confirmBtn">确认</button></div></div>';
     let body = document.querySelector('body');
     let overlay = document.createElement('div');

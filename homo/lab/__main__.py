@@ -28,7 +28,6 @@ init_time = str(int(time.time()))
 
 version = '0.9.5.3.1'
 agreement_version = '1'
-http_port = random.randint(50000, 60000)
 home_dir = str(pathlib.Path.home())
 app_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 run_dir = os.path.join(home_dir, 'homolab-dir')
